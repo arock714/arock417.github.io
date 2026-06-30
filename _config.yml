@@ -13,7 +13,7 @@ title: Eric Melendez's Portfolio # This is what shows up in the tab of the brows
 
 # Hero Section
 name: Eric Melendez
-headline: headline message
+headline: Graduate Student at Columbia Fu Foundation School of Engineering
 description: >- # dont remove this line. this will ignore all new lines until the next section
   Write an awesome intro and discuss your highlights and qualification. You can edit this
   line in _config.yml. It will appear in your document head meta (for
@@ -25,7 +25,7 @@ profile_image: ./assets/images/profile-image/avatar.jpeg
 
 # Link your resume
 # You can place your resume in assets/resume/{resume.pdf or add external link such as pdf saved in google drive 
-resume-url: https://drive.google.com/file/d/13Z3duVzh-gguPU5r03oJVEE6rV9rd3DS/view?usp=sharing # or /assets/resume/resume.pdf
+resume-url: /assets/resume/resume.pdf # can alternatively be a link
 
 
 # Set up external links - this will show up as small icons next to your name.
@@ -50,9 +50,10 @@ skills:
       - Design for Manufacturing
       - Engineering Drawings
       - Fusion 360 CAM
-      - Tormach 770M
-      - Manual Lathe
+      - CNC Mill
+      - CNC Lathe
       - Manual Mill
+      - Manual Lathe
     - category: Prototyping
       tools:
       - Solidworks
@@ -109,7 +110,7 @@ skills:
 
 
 # Contact Form Setup. Setup an account and copy over the key. When someone fills out the form, it will be received in your email.
-formspree-key:   https://formspree.io/f/{8-digit key}
+formspree-key:   https://formspree.io/f/xzdlazkv
 
 
 
