@@ -7,12 +7,12 @@
 
 # Main Page Setup
 
-title: John Doe's Portfolio # This is what shows up in the tab of the browser
+title: Eric Melendez's Portfolio # This is what shows up in the tab of the browser
 
 
 
 # Hero Section
-name: John Doe
+name: Eric Melendez
 headline: headline message
 description: >- # dont remove this line. this will ignore all new lines until the next section
   Write an awesome intro and discuss your highlights and qualification. You can edit this
@@ -31,9 +31,9 @@ resume-url: https://drive.google.com/file/d/13Z3duVzh-gguPU5r03oJVEE6rV9rd3DS/vi
 # Set up external links - this will show up as small icons next to your name.
 
 external-links:    # input only your own url slug. The icons with missing entries will not appear.
-  linkedin: test    # https://www.linkedin.com/in/{your url slug} 
-  github: leea12    # https://github.com/{your url slug} 
-  stackoverflow: test      # https://stackoverflow.com/users/{your url slug}
+  linkedin: em4747    # https://www.linkedin.com/in/{your url slug} 
+  github:     # https://github.com/{your url slug} 
+  stackoverflow:       # https://stackoverflow.com/users/{your url slug}
   medium:            # https://medium.com/@{your url slug} 
   x-twitter:   # https://x.com/{your url slug} 
   threads:            # https://threads.net/@{your url slug} 
@@ -45,46 +45,67 @@ external-links:    # input only your own url slug. The icons with missing entrie
 
 # Skills Section - Add the list of your Skills by categories/tools. The indentation for each level needs to be precise. 
 skills:
-  - category: 3D Modeling
-    tools:
-    - Onshape
-    - Solidworks
-    - Creo
-    - Fusion 360 (Autodesk)
-    - Blender (for complex shapes or animations)
-    - Siemens NX
-    - Inventor (Autodesk)
-    - CATIA (Dassault Systèmes)
-  - category: Prototyping
-    tools:
-    - SLA
-    - CNC
-    - FDM
-    - SLS
-    - DMLS
-    - PolyJet Printing
-    - Vacuum Casting
-    - Laser Cutting
-    - Water Jet Cutting
-    - Arduino / Raspberry Pi
-    - Breadboarding for circuit testing
-  - category: Design Standards / Practices
-    tools:
-    - GD&T ASME Y14
-    - ISO fits and tolerances
-    - PLM (PTC Windchill / Arena)   
-  - category: PCB Design
-    tools:
-    - Altium Designer
-    - Altium
-    - Eagle 
-    - KiCad
-  - category: Problem Solving / Risk Management
-    tools:
-    - Root Cause Analysis (e.g., 5 Whys, Fishbone Diagram)
-    - DFMEA / PFMEA 
-    - Six Sigma methodologies
-    - Shain Red-X
+    - category: Machining
+      tools:
+      - Design for Manufacturing
+      - Engineering Drawings
+      - Fusion 360 CAM
+      - Tormach 770M
+      - Manual Lathe
+      - Manual Mill
+    - category: Prototyping
+      tools:
+      - Solidworks
+      - Python
+      - 3D Printing
+      - Lasercutting
+    - category: Engineering Tools
+      tools:
+      - Matlab
+      - Simulink
+      - Ansys Mechanical
+      - Ansys Fluent
+
+  # - category: 3D Modeling
+  #   tools:
+  #   - Onshape
+  #   - Solidworks
+  #   - Creo
+  #   - Fusion 360 (Autodesk)
+  #   - Blender (for complex shapes or animations)
+  #   - Siemens NX
+  #   - Inventor (Autodesk)
+  #   - CATIA (Dassault Systèmes)
+  # - category: Prototyping
+  #   tools:
+  #   - SLA
+  #   - CNC
+  #   - FDM
+  #   - SLS
+  #   - DMLS
+  #   - PolyJet Printing
+  #   - Vacuum Casting
+  #   - Laser Cutting
+  #   - Water Jet Cutting
+  #   - Arduino / Raspberry Pi
+  #   - Breadboarding for circuit testing
+  # - category: Design Standards / Practices
+  #   tools:
+  #   - GD&T ASME Y14
+  #   - ISO fits and tolerances
+  #   - PLM (PTC Windchill / Arena)   
+  # - category: PCB Design
+  #   tools:
+  #   - Altium Designer
+  #   - Altium
+  #   - Eagle 
+  #   - KiCad
+  # - category: Problem Solving / Risk Management
+  #   tools:
+  #   - Root Cause Analysis (e.g., 5 Whys, Fishbone Diagram)
+  #   - DFMEA / PFMEA 
+  #   - Six Sigma methodologies
+  #   - Shain Red-X
 
 
 # Contact Form Setup. Setup an account and copy over the key. When someone fills out the form, it will be received in your email.

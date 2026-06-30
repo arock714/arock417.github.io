@@ -109,6 +109,6 @@ console.log(x);
 | Row 1, Col 1 | Row 1, Col 2 |
 | Row 2, Col 1 | Row 2, Col 2 |
 
-make sure to leave aline betwen the table and the header
+make sure to leave a line between the table and the header
 
 
