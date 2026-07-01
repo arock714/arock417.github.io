@@ -33,6 +33,6 @@ This system for legs deployment took a few design iterations to get right. My fi
 
 The lead screw method solves this reliability problem by only deploying when it's triggered by the flight computer. This means we have much more control over this premature deploying failure event. A stepper motor was chosen to spin the threaded rod. Early on, I failed to run a calculation on the torque of the stepper motor compared to the estimated torque required to deploy the gear. The result was a very underpowered stepper motor during initial prototyping. Thanks to the early prototyping, the stepper motor and power supply was upgraded before the final vehicle integration.
 
-{% include image-gallery.html images="prototype-irl.JPEG""prototype-render.JPEG" height="400" %}
+{% include image-gallery.html image1="prototype-irl.JPEG" image2="prototype-render.JPEG" height="400" %}
 *Wooden prototype made for rapid prototyping (left) and render from SolidWorks assembly (right).*
 
