@@ -15,9 +15,11 @@ title: Eric Melendez's Portfolio # This is what shows up in the tab of the brows
 name: Eric Melendez
 headline: Graduate Student at Columbia Fu Foundation School of Engineering
 description: >- # dont remove this line. this will ignore all new lines until the next section
-  Write an awesome intro and discuss your highlights and qualification. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  Eric Melendez is a currently working on a Mechanical Engineering Master of Science at the Columbia Fu 
+  Foundation School of Engineering. During his undergrad at NYU Tandon, he served as Engineering Director 
+  for NYU's student run rocketry team where he aided in the first ever collegiate hybrid propulsion system
+  to come out of Brooklyn, NY! He did work both on big picture project management throughout the academic
+  year and hands on design and machining work.
 
 # Place your profile image in /assets/images/profile-image/folder and edit the file name
 profile_image: ./assets/images/profile-image/avatar.jpeg
