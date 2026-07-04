@@ -9,7 +9,6 @@ skills:
 - Carbon Fiber Layup
 - Rapid Prototyping
 main-image: /payload-gear.JPEG
-permalink: /projects/4-payload-landing-gear/
 ---
 
 {% include image-gallery.html images="payload-gear.JPEG, landing-gear-bom.jpg" height="500" %}
