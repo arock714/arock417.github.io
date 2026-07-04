@@ -11,8 +11,7 @@ skills:
 main-image: /payload-gear.JPEG
 ---
 
-{% include image-gallery.html images="payload-gear.JPEG" height="600" %}
-{% include image-gallery.html images="landing-gear-bom.jpg" height="600" %}
+{% include image-gallery.html images="payload-gear.JPEG landing-gear-bom.jpg" height="500" %}
 
 
 # Design Process
@@ -33,7 +32,7 @@ During the initial design of the landing gear I took inspiration from camera tri
 
 This system for legs deployment took a few design iterations to get right. My first thought was to place a compression spring on the middle shaft of the landing gear which would push out the legs when current ran through a nichrome wire which held the legs during ascent. While this would push out the legs in a very short period of time, the possibility of the nichrome wire breaking or coming loose during ascent would be catastrophic to the aerodynamic stability of the rocket. So this design would fit design goal 1 pretty well but have the potential to fail design goal 2 catastrophically. Additionally, any compression spring long enough to apply a force when the legs were deployed would be applying a very high force when in its launch position.
 
-{% include image-gallery.html images="initial design.png" height="400" %}
+{% include image-gallery.html images="initial-design.png" height="400" %}
 *Initial landing gear design using a compression spring.*
 
 The lead screw method solves this reliability problem by only deploying when it's triggered by the flight computer. This means we have much more control over this premature deploying failure event. A stepper motor was chosen to spin the threaded rod. Early on, I failed to run a calculation on the torque of the stepper motor compared to the estimated torque required to deploy the gear. The result was a very underpowered stepper motor.
@@ -41,8 +40,7 @@ The lead screw method solves this reliability problem by only deploying when it'
 ### Prototype
 With the SolidWorks assembly updated to the stepper motor driven lead screw, I had concerns with the assembly of the system. There were lots of small parts in the design--small clevis pins, thin aluminum rods, and a small bearing imbedded in the tip of the nose cone. At this point in the semester, the club was rebuilding the launch vehicle following a recovery failure. This meant pretty much all the remaining budget was going to this vehicle rebuild and I had no money to work with. I decided to create a prototype that would cost nothing while putting to rest my assembly and stepper motor torque concerns. I ended up with a laser cut design which used only 1/8" birch which was lying around, wood glue, and parts which were already manufactured. The design was such that it could be disassembled and all the already manufacture parts could be taken off and reused for the final assembly.
 
-{% include image-gallery.html images="prototype-irl.JPEG" height="400" %}
-{% include image-gallery.html images="prototype-render.JPEG" height="400" %}
+{% include image-gallery.html images="prototype-irl.JPEG prototype-render.JPEG" height="400" %}
 *Wooden prototype (left) and render from SolidWorks Visualize (right).*
 
 Following the testing of this prototype, I learned two things:
@@ -65,36 +63,28 @@ The first nose cone made was printed at an angle and had a small piece break off
 
 The print was then sanded as preparation for the epoxy bond to the carbon fiber. The layup of the nose cone was done with a carbon fiber biaxial sleeve from Soller Composites. Near the top of the nose cone, the sleeve bunched up quite a bit and made it difficult to get a smooth surface.
 
-{% include image-gallery.html images="nc1-duringlayup.JPEG" height="400" %}
+{% include image-gallery.html images="nc1-duringlayup.PNG" height="400" %}
 *Nose cone 1 during lay up process.*
 
 After the lay up and curing, the nose cone exterior was sanded with a Dremel to get a smooth surface and clean up the edges. This process took about a week and proved difficult due to the bunching up at the top of the nose cone. The result was a surface made uneven by patches of exposed 3D print--especially near the tip of the nose cone.
 
-{% include image-gallery.html images="nc1-afterlayup.JPEG" height="400" %}
-{% include image-gallery.html images="nc1-dremel1.JPEG" height="400" %}
-{% include image-gallery.html images="nc1-finished.JPEG" height="400" %}
+{% include image-gallery.html images="nc1-afterlayup.JPG nc1-dremel1.JPEG nc1-finished.JPEG" height="400" %}
 *Nose cone 1 directly after lay up (left), during the Dremel operation, and the finished nose cone (right).*
 
 ### Nose Cone 2
 The second nose cone was printed upright such that the printing lines would be parallel to the radial direction. This reduced the chance of the printing error during the print of the first nose cone. During the over lay process of this nose cone, the same carbon fiber biaxial sleeve was used for the bottom portion of the geometry while a smaller diameter sleeve was used for the top of the nose cone. This reduced the bunching up of the sleeve which made the Dremel step simpler and faster. The lay up was also wrapped in plastic to smooth the surface of the carbon fiber.
 
-{% include image-gallery.html images="nc2-blu1.JPEG" height="400" %}
-{% include image-gallery.html images="nc2-blu3.JPEG" height="400" %}
-{% include image-gallery.html images="nc2-alu1.JPEG" height="400" %}
+{% include image-gallery.html images="nc2-blu1.JPEG nc2-blu3.JPEG nc2-alu1.JPEG" height="400" %}
 *Nose cone 2 during layup.*
 
 After the lay up, the nose cone was much smoother than the first try.
 
-{% include image-gallery.html images="nc2-alu1.JPEG" height="400" %}
-{% include image-gallery.html images="nc2-alu2.JPG" height="400" %}
-{% include image-gallery.html images="nc2-alu3.JPG" height="400" %}
+{% include image-gallery.html images="nc2-alu2.JPG nc2-alu3.JPG" height="400" %}
 *Nose cone 2 after lay up.*
 
 By using two different diameters of carbon fiber sleeve and wrapping the lay up in plastic, the Dremel process became much simpler. While it still took about 3 days of work, it was easier and resulted in a much more smooth surface.
 
-{% include image-gallery.html images="nc2-dremel.JPG" height="400" %}
-{% include image-gallery.html images="nc2-hole.JPEG" height="400" %}
-{% include image-gallery.html images="nc2-fin.JPEG" height="400" %}
+{% include image-gallery.html images="nc2-dremel.JPG nc2-hole.JPEG nc2-fin.JPEG" height="400" %}
 *Nose cone 2 during the Dremel step and the finished nose cone 2 (right).*
 
 With the nose cone 2 finished and the landing gear prototype success, it was time to integrate the landing gear into the nose cone.
