@@ -74,7 +74,7 @@ After the lay up and curing, the nose cone exterior was sanded with a Dremel to 
 ### Nose Cone 2
 The second nose cone was printed upright such that the printing lines would be parallel to the radial direction. This reduced the chance of the printing error during the print of the first nose cone. During the over lay process of this nose cone, the same carbon fiber biaxial sleeve was used for the bottom portion of the geometry while a smaller diameter sleeve was used for the top of the nose cone. This reduced the bunching up of the sleeve which made the Dremel step simpler and faster. The lay up was also wrapped in plastic to smooth the surface of the carbon fiber.
 
-{% include image-gallery.html images="nc2-blu1.JPEG, nc2-blu3.JPEG, nc2-alu1.JPEG" height="400" %}
+{% include image-gallery.html images="nc2-blu1.JPEG, nc2-blu3.JPEG, nc2_alu1.JPEG" height="400" %}
 *Nose cone 2 during layup.*
 
 After the lay up, the nose cone was much smoother than the first try.
