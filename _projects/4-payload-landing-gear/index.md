@@ -117,6 +117,6 @@ Following the assembly of the landing gear, it was difficult to get the bay cove
 # Results
 The launch vehicle holding the final landing gear assembly suffered a Catastrophic Accident on Take Off (CATO) which prevented the flight test of the fully integrated landing gear system. This CATO also prevented the team's final launch in Huntsville, Alabama. Despite the inability to launch the vehicle, myself and two other members decided to attend the conference in Alabama to both show our own engineering work and check out the engineering work of the other teams.
 
-{% include image-gallery.html images=`"ala-1.JPEG, ala-2.JPEG" height="400" %}
+{% include image-gallery.html images="ala-1.JPEG, ala-2.JPEG" height="400" %}
 *NYU Rogue Aerospace's booth at NASA USLI conference 2025.*
 
