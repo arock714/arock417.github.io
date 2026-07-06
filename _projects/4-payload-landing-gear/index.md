@@ -21,10 +21,10 @@ This set of landing gear was designed for NYU Rogue Aerospace's 2025 NASA Univer
 ## Design Goals
 1. Deploy landing gear between 5 seconds after main parachute deployment and before touchdown--roughly 40 seconds.
 2. Deploy reliably under the descent conditions.
-3. Fit within the payload module while allowing space for the radio components and flight computer.
+3. Fit within the payload module while allowing space for the radio electronics and flight computer.
 
 ## Initial Design
-During the initial design of the landing gear I took inspiration from camera tripod legs as they are designed to extend into a large and stable base while collapsing into a slim and portable shape. However, these systems rely on a person to manually push out the legs. The landing gear for the payload needs a system to push out the legs.
+During the initial design of the landing gear I took inspiration from camera tripod legs as they are designed to extend into a large and stable base while collapsing into a slim and portable shape. Where a camera tripod relies on someone to push out the legs, the landing gear in the payload module required a robust system to push out the legs.
 
 {% include image-gallery.html images="tripod.webp" height="400" %}
 *Tripod inspiration example.*
@@ -39,8 +39,8 @@ The lead screw method solves this reliability problem by only deploying when it'
 ## Prototype
 With the SolidWorks assembly updated to the stepper motor driven lead screw, I had concerns with the assembly of the system. There were lots of small parts in the design--small clevis pins, thin aluminum rods, and a small bearing imbedded in the tip of the nose cone. At this point in the semester, the club was rebuilding the launch vehicle following a recovery failure. This meant pretty much all the remaining budget was going to this vehicle rebuild and I had no money to work with. I decided to create a prototype that would cost nothing while putting to rest my assembly and stepper motor torque concerns. I ended up with a laser cut design which used only 1/8" birch which was lying around, wood glue, and parts which were already manufactured. The design was such that it could be disassembled and all the already manufacture parts could be taken off and reused for the final assembly.
 
-{% include image-gallery.html images="prototype-irl.JPEG, prototype-render.JPEG" height="400" %}
-*Wooden prototype (left) and render from SolidWorks Visualize (right).*
+{% include image-gallery.html images="landing-gear-pose2.jpg, prototype-irl.JPEG, prototype-render.JPEG" height="400" %}
+*Landing gear assembly (left), wooden prototype, and render from SolidWorks Visualize (right).*
 
 Following the testing of this prototype, I learned two things:
 1. Assembly of the system is possible and not too difficult. However, inside the tight space of the nose cone it may be slightly more difficult.
@@ -104,9 +104,10 @@ Because of the earlier wooden prototype, the assembly process was simple. The fo
 {% include image-gallery.html images="final-1.JPEG, final-3.JPEG, final-4.JPEG" height="400" %}
 *Landing gear final assembly process.*
 
+{% include youtube-video.html id="GZcopZi54Qs" autoplay= "false"%}
 {% include youtube-video.html id="HYcQphOrnHs" autoplay= "false"%}
 *Video demonstration of fully integrated landing gear deploying.*
-
+*Note: the legs get a bit stuck on the first test--this issue was fixed before test 2.*
 
 # Reflections & Lessons Learned
 This project was my first exposure to design for manufacturing. During an initial design consolation with my sub-team leads, I quickly realized my assembly was impossible to manufacture. They turned me in the direction of McMaster-Carr and I redesigned while constantly asking myself how every part would be manufactured. With manufacturing in the back of my mind, a curiosity sparked which would send me to my local makerspace the following summer in Austin, TX where I was trained on a manual lathe and made several beginner projects.
@@ -116,5 +117,6 @@ Following the assembly of the landing gear, it was difficult to get the bay cove
 # Results
 The launch vehicle holding the final landing gear assembly suffered a Catastrophic Accident on Take Off (CATO) which prevented the flight test of the fully integrated landing gear system. This CATO also prevented the team's final launch in Huntsville, Alabama. Despite the inability to launch the vehicle, myself and two other members decided to attend the conference in Alabama to both show our own engineering work and check out the engineering work of the other teams.
 
-{% include image-gallery.html images="ala-1.JPEG, ala-2.JPEG" height="400" %}
+{% include image-gallery.html images=`"ala-1.JPEG, ala-2.JPEG" height="400" %}
 *NYU Rogue Aerospace's booth at NASA USLI conference 2025.*
+
