@@ -51,11 +51,14 @@ I went back to the drawing board and selected the NEMA 17 for its increased maxi
 {% include image-gallery.html images="prototype-and-nc.JPEG" height="400" %}
 *Wooden prototype and nose cone 2 print.*
 
+{% include youtube-video.html id="op1t0Wb1Mq0" autoplay= "false"%}
+*Landing gear prototype with NEMA 17 stepper motor test.*
+
 # Nose Cone Manufacturing
 While I was the responsible engineer in charge of the landing gear, I also helped out with the nose cone fabrication as this was a part of my assembly. The nose cone was 3D printed out of ABS-CF10 on a Stratasys F370. In order to additionally strengthen the print, one layer of carbon fiber was overlaid over the exterior of the nose cone. The process of applying this layer of carbon fiber was complicated by the geometry of the nose cone, a von Kármán profile which is relatively slim compared to other profiles, and the slots required for the legs to extend from the inside of the nose cone. 
 
 ## Nose Cone 1
-The first nose cone made was printed at an angle and had a small piece break off along the print line due to a printing error. This piece was reapplied with steel epoxy. Due to the printing error, the team decided to remake the nose cone but continue with the lay up of this first nose cone to test the layup process. 
+The first nose cone made was printed at an angle and had a small piece break off along the print line due to a printing error. This piece was reapplied with steel epoxy. Due to the printing error, the team decided to remake the nose cone but continue with the lay up of this first nose cone to test the layup process.
 
 {% include image-gallery.html images="nc1-fixingerror.JPEG" height="400" %}
 *Nose cone 1 print after steel epoxy repair.*
@@ -69,6 +72,11 @@ After the lay up and curing, the nose cone exterior was sanded with a Dremel to 
 
 {% include image-gallery.html images="nc1-afterlayup.JPG, nc1-dremel1.JPEG, nc1-finished.JPEG" height="400" %}
 *Nose cone 1 directly after lay up (left), during the Dremel operation, and the finished nose cone (right).*
+
+This nose cone was flown for the team's vehicle flight demonstration.
+
+{% include image-gallery.html images="nc1-1.JPEG, nc1-2.JPEG, nc1-3.JPEG" height="400" %}
+*Vehicle demonstration flight.*
 
 ## Nose Cone 2
 The second nose cone was printed upright such that the printing lines would be parallel to the radial direction. This reduced the chance of the printing error during the print of the first nose cone. During the over lay process of this nose cone, the same carbon fiber biaxial sleeve was used for the bottom portion of the geometry while a smaller diameter sleeve was used for the top of the nose cone. This reduced the bunching up of the sleeve which made the Dremel step simpler and faster. The lay up was also wrapped in plastic to smooth the surface of the carbon fiber.
@@ -93,10 +101,12 @@ The landing gear assembly was designed with parts which would be easily manufact
 
 Because of the earlier wooden prototype, the assembly process was simple. The following images document the assembly process.
 
-{% include image-gallery.html images="final-1.JPEG, final-2.JPEG, final-3.JPEG, final-4.JPEG" height="400" %}
+{% include image-gallery.html images="final-1.JPEG, final-3.JPEG, final-4.JPEG" height="400" %}
 *Landing gear final assembly process.*
 
 {% include youtube-video.html id="HYcQphOrnHs" autoplay= "false"%}
+*Video demonstration of fully integrated landing gear deploying.*
+
 
 # Reflections & Lessons Learned
 This project was my first exposure to design for manufacturing. During an initial design consolation with my sub-team leads, I quickly realized my assembly was impossible to manufacture. They turned me in the direction of McMaster-Carr and I redesigned while constantly asking myself how every part would be manufactured. With manufacturing in the back of my mind, a curiosity sparked which would send me to my local makerspace the following summer in Austin, TX where I was trained on a manual lathe and made several beginner projects.
@@ -107,3 +117,4 @@ Following the assembly of the landing gear, it was difficult to get the bay cove
 The launch vehicle holding the final landing gear assembly suffered a Catastrophic Accident on Take Off (CATO) which prevented the flight test of the fully integrated landing gear system. This CATO also prevented the team's final launch in Huntsville, Alabama. Despite the inability to launch the vehicle, myself and two other members decided to attend the conference in Alabama to both show our own engineering work and check out the engineering work of the other teams.
 
 {% include image-gallery.html images="ala-1.JPEG, ala-2.JPEG" height="400" %}
+*NYU Rogue Aerospace's booth at NASA USLI conference 2025.*
