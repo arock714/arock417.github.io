@@ -8,7 +8,7 @@ skills:
 - SolidWorks
 - Carbon Fiber Layup
 - Rapid Prototyping
-main-image: /payload-gear.JPEG
+main-image: /cover.png
 ---
 
 {% include image-gallery.html images="payload-gear.JPEG, landing-gear-bom.jpg" height="500" %}
