@@ -89,9 +89,7 @@ By using two different diameters of carbon fiber sleeve and wrapping the lay up 
 # Landing Gear Assembly
 The landing gear assembly was designed with parts which would be easily manufactured. However, due to the team's lack of experience with metal machining, the manufacturing work was done by NYU Tandon's machinist, Oleg Shargorodskiy. I drew up the following drawings which were given to the machinist for fabrication. Working with the machinist's suggestions, the center cylinder was modified in order to run the same CNC tool path multiple times instead of having to write separate tool paths for each side.
 
-<iframe src="/_projects/4-payload-landing-gear/lg-drawing.pdf" width="100%" height="700px" style="border: none;">
-    <p>Your browser does not support PDFs. <a href="/_projects/4-payload-landing-gear/lg-drawing.pdf">Click here to download the PDF instead.</a></p>
-</iframe>
+[![View PDF](https://img.shields.io/badge/View_Technical_Report-PDF-red?style=for-the-badge&logo=adobe-acrobat-reader&logoColor=white)](/_projects/4-payload-landing-gear/lg-drawing.pdf)
 
 Because of the earlier wooden prototype, the assembly process was simple. The following images document the assembly process.
 
