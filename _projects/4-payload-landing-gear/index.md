@@ -1,7 +1,8 @@
 ---
 layout: post
 title: Payload Landing Gear (Sep 2024 - Apr 2025)
-description: Designed, developed, and tested custom landing gear to fit inside a 6" diameter nose cone and reliably deploy in under 30 seconds. Four 3D printed stainless steel bay covers retain the outer shape of the nose cone during ascent and serve as landing feet upon touch down. The deployment is actuated by a 1/4"-20 threaded lead screw and NEMA 17 stepper motor controlled by a flight computer on board the payload module.
+description: >- 
+    Designed, developed, and tested custom landing gear to fit inside a 6" diameter nose cone and reliably deploy in under 30 seconds. Four 3D printed stainless steel bay covers retain the outer shape of the nose cone during ascent and serve as landing feet upon touch down. The deployment is actuated by a 1/4"-20 threaded lead screw and NEMA 17 stepper motor controlled by a flight computer on board the payload module.
 
 skills: 
 - Design for Manufacture
