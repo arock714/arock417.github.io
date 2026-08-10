@@ -6,7 +6,7 @@ description:  Machinist's hammer with a soft (delrin) side and a hard (aluminum)
 skills: 
 - Design for Manufacture
 - Manual Lathe
-main-image: 
+main-image: /hammermainimage.png
 ---
 
 A machinist's hammer is a common first project for an amateur machinist. The hammer is very useful when setting up workpieces on lathes and mills. This hammer I made from aluminum, steel, and delrin completely on a manual lathe. The design was based off of general dimensions found online and based on what stock I had on hand. The hammer was completed in about 5 sessions over about a week and a half. The following is the pdf drawing packet for the hammer assembly. These drawings were drawn and used for reference while machining. 
@@ -33,7 +33,7 @@ Once all parts were machined and assembled initially, I decided the shaft was a 
 With the hammer completed, I felt the handle could use some extra grip. With a hand engraver, I added hand drawn intersecting lines along the handle. 
 
 {% include image-gallery.html images="etching.JPEG" height="400" %}
-*Hammer handle during etching.*
+*Hammer handle during etching   .*
 
 With that final touch, the hammer was complete! It has now been used for applications ranging from CNC mill setup to assembling Ikea furniture.
 
