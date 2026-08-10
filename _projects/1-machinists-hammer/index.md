@@ -11,7 +11,7 @@ main-image: /hammermainimage.png
 
 A machinist's hammer is a common first project for an amateur machinist. The hammer is very useful when setting up workpieces on lathes and mills. This hammer I made from aluminum, steel, and delrin completely on a manual lathe. The design was based off of general dimensions found online and based on what stock I had on hand. The hammer was completed in about 5 sessions over about a week and a half. The following is the pdf drawing packet for the hammer assembly. These drawings were drawn and used for reference while machining. 
 
-[→ View Machinist Hammer Drawings PDF](/projects/1-machinists-hammer/machinghammerdrawings.pdf)
+[→ View Machinist Hammer Drawings PDF](/projects/1-machinists-hammer/machinisthammerdrawings.pdf)
 
 # Design
 The design of the hammer was optimized for what material I had on hand and for my skill set as an amateur machinist. The operations were kept simple as I would be completing all operations on my own and by hand. The lathe operations were limited to simple outer diameter turning, facing, drilling, and tapping. Steel threaded rod couplers fixed with locktight were used between most parts while the shaft threads into both the handle and hammer head. By using all threaded connections, the hammer could be assembled and parts modified before the connections were made permanent by locktight. A hard and soft side, made from delrin and aluminum, make up the head of the hammer to offer a more versatile utility.
