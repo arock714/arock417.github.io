@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study & Exam Tracker | Eric Melendez</title>
 
-    <!-- Cross-platform Carlito / Calibri font -->
+    <!-- Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
@@ -24,11 +24,7 @@
             --input-bg: #141416;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Carlito', Calibri, "Segoe UI", sans-serif;
@@ -49,21 +45,9 @@
             margin-bottom: 16px;
         }
 
-        h1 {
-            font-size: 1.5rem;
-            color: var(--accent-cyan);
-        }
-
-        header a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-
-        header a:hover {
-            color: var(--accent-cyan);
-        }
+        h1 { font-size: 1.5rem; color: var(--accent-cyan); }
+        header a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: bold; }
+        header a:hover { color: var(--accent-cyan); }
 
         .token-bar {
             display: flex;
@@ -78,11 +62,7 @@
             gap: 16px;
         }
 
-        @media (max-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-        }
+        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } }
 
         .card {
             background-color: var(--card-bg);
@@ -91,9 +71,7 @@
             padding: 16px;
         }
 
-        .full-width {
-            grid-column: 1 / -1;
-        }
+        .full-width { grid-column: 1 / -1; }
 
         .card-title {
             font-size: 1.05rem;
@@ -138,9 +116,7 @@
             font-size: 0.9rem;
         }
 
-        select {
-            margin-bottom: 12px;
-        }
+        select { margin-bottom: 12px; }
 
         button {
             background: var(--accent-cyan);
@@ -157,12 +133,7 @@
         .btn-red { background: var(--accent-red); color: #000; }
         .btn-purple { background: var(--accent-purple); color: #000; }
 
-        .list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
 
         .list-item {
             background: var(--input-bg);
@@ -174,15 +145,8 @@
             align-items: center;
         }
 
-        .item-title {
-            font-weight: bold;
-            font-size: 0.95rem;
-        }
-
-        .item-sub {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
+        .item-title { font-weight: bold; font-size: 0.95rem; }
+        .item-sub { font-size: 0.8rem; color: var(--text-muted); }
 
         .countdown-badge {
             background: rgba(56, 189, 248, 0.15);
@@ -193,7 +157,6 @@
             font-size: 0.85rem;
         }
 
-        /* Chart Styling */
         .chart-container {
             display: flex;
             align-items: flex-end;
@@ -229,3 +192,63 @@
             border-radius: 4px 4px 0 0;
             transition: height 0.4s ease, background-color 0.2s;
             min-height: 4px;
+        }
+
+        .chart-bar.today { background: var(--accent-green); }
+        .chart-val { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: bold; }
+        .chart-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>⏱️ Eric's Study & Exam Tracker</h1>
+        <a href="/">← Main Portfolio</a>
+    </header>
+
+    <div class="token-bar">
+        <input type="password" id="ghTokenInput" placeholder="GitHub PAT (github_pat_...)" style="max-width: 260px;">
+        <button id="saveTokenBtn" style="background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border);">Save Token</button>
+    </div>
+
+    <div class="dashboard">
+
+        <div class="card">
+            <div class="card-title">📚 Active Study Session</div>
+
+            <select id="projectSelect"></select>
+
+            <div class="timer-display">
+                <div class="timer-time" id="timerDisplay">00:00:00</div>
+                <div class="timer-controls">
+                    <button id="startBtn" class="btn-green">Start</button>
+                    <button id="pauseBtn" class="btn-red" style="display: none;">Pause</button>
+                    <button id="logBtn" class="btn-purple" style="display: none;">+ Log Time</button>
+                    <button id="resetBtn" style="background: var(--border); color: var(--text);">Reset</button>
+                </div>
+            </div>
+
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; font-weight: bold;">TOTAL TIME LOGGED</div>
+            <ul class="list" id="projectList"></ul>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🎯 Upcoming Exams</div>
+            <ul class="list" id="examList"></ul>
+        </div>
+
+        <div class="card full-width">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div class="card-title" style="margin-bottom: 0;">📊 Study Time (Past 7 Days)</div>
+                <div id="weeklyTotalDisplay" style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: bold;">Total: 0.0 hrs</div>
+            </div>
+            
+            <div class="chart-container" id="chartContainer"></div>
+        </div>
+
+    </div>
+
+    <!-- External JavaScript File -->
+    <script src="app.js" defer></script>
+</body>
+</html>
