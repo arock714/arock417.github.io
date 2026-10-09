@@ -24,7 +24,11 @@
             --input-bg: #141416;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Carlito', Calibri, "Segoe UI", sans-serif;
@@ -45,9 +49,21 @@
             margin-bottom: 16px;
         }
 
-        h1 { font-size: 1.5rem; color: var(--accent-cyan); }
-        header a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: bold; }
-        header a:hover { color: var(--accent-cyan); }
+        h1 {
+            font-size: 1.5rem;
+            color: var(--accent-cyan);
+        }
+
+        header a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        header a:hover {
+            color: var(--accent-cyan);
+        }
 
         .token-bar {
             display: flex;
@@ -62,7 +78,11 @@
             gap: 16px;
         }
 
-        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
 
         .card {
             background-color: var(--card-bg);
@@ -71,7 +91,9 @@
             padding: 16px;
         }
 
-        .full-width { grid-column: 1 / -1; }
+        .full-width {
+            grid-column: 1 / -1;
+        }
 
         .card-title {
             font-size: 1.05rem;
@@ -116,7 +138,9 @@
             font-size: 0.9rem;
         }
 
-        select { margin-bottom: 12px; }
+        select {
+            margin-bottom: 12px;
+        }
 
         button {
             background: var(--accent-cyan);
@@ -133,7 +157,12 @@
         .btn-red { background: var(--accent-red); color: #000; }
         .btn-purple { background: var(--accent-purple); color: #000; }
 
-        .list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
         .list-item {
             background: var(--input-bg);
@@ -145,8 +174,15 @@
             align-items: center;
         }
 
-        .item-title { font-weight: bold; font-size: 0.95rem; }
-        .item-sub { font-size: 0.8rem; color: var(--text-muted); }
+        .item-title {
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .item-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
 
         .countdown-badge {
             background: rgba(56, 189, 248, 0.15);
@@ -157,7 +193,7 @@
             font-size: 0.85rem;
         }
 
-        /* --- Bar Chart Styling --- */
+        /* Chart Styling */
         .chart-container {
             display: flex;
             align-items: flex-end;
@@ -195,7 +231,9 @@
             min-height: 4px;
         }
 
-        .chart-bar.today { background: var(--accent-green); }
+        .chart-bar.today {
+            background: var(--accent-green);
+        }
 
         .chart-val {
             font-size: 0.75rem;
@@ -218,7 +256,6 @@
         <a href="/">← Main Portfolio</a>
     </header>
 
-    <!-- GitHub Personal Access Token Config Bar -->
     <div class="token-bar">
         <input type="password" id="ghTokenInput" placeholder="GitHub PAT (github_pat_...)" style="max-width: 260px;">
         <button id="saveTokenBtn" style="background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border);">Save Token</button>
@@ -226,7 +263,6 @@
 
     <div class="dashboard">
 
-        <!-- ACTIVE STUDY SESSION & PROJECT LIST -->
         <div class="card">
             <div class="card-title">📚 Active Study Session</div>
 
@@ -246,13 +282,11 @@
             <ul class="list" id="projectList"></ul>
         </div>
 
-        <!-- UPCOMING EXAMS -->
         <div class="card">
             <div class="card-title">🎯 Upcoming Exams</div>
             <ul class="list" id="examList"></ul>
         </div>
 
-        <!-- WEEKLY ACTIVITY BAR CHART -->
         <div class="card full-width">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <div class="card-title" style="margin-bottom: 0;">📊 Study Time (Past 7 Days)</div>
@@ -265,19 +299,19 @@
     </div>
 
     <script>
-        // --- REPOSITORY CONFIGURATION ---
-        const REPO_OWNER = "YOUR_GITHUB_USERNAME"; // e.g. "ericmelendez"
-        const REPO_NAME = "YOUR_REPO_NAME";         // e.g. "ericmelendez.github.io"
+        const REPO_OWNER = "arock417";
+        const REPO_NAME = "arock417.github.io";
         const FILE_PATH = "study/data.json";
 
-        // Fallback state if data.json is unreachable
         let trackerData = {
             projects: [
                 { id: "1", name: "Flight Dynamics & Controls", totalHours: 24.5 },
-                { id: "2", name: "Orbital Mechanics", totalHours: 18.0 }
+                { id: "2", name: "Orbital Mechanics", totalHours: 18.0 },
+                { id: "3", name: "NASA USLI Payload Development", totalHours: 42.0 }
             ],
             exams: [
-                { name: "Flight Dynamics Midterm", date: "2026-10-28T14:00:00" }
+                { name: "Flight Dynamics Midterm", date: "2026-10-28T14:00:00" },
+                { name: "Orbital Mechanics Exam 1", date: "2026-11-12T09:30:00" }
             ],
             weeklyStudy: [
                 { day: "Sat", hours: 2.5 },
@@ -323,15 +357,28 @@
                     const res = await fetch(`./data.json?cache=${Date.now()}`);
                     if (res.ok) {
                         const remoteData = await res.json();
-                        if (remoteData && remoteData.projects) trackerData = remoteData;
+                        if (remoteData) {
+                            if (Array.isArray(remoteData.projects)) trackerData.projects = remoteData.projects;
+                            if (Array.isArray(remoteData.exams)) trackerData.exams = remoteData.exams;
+                            if (Array.isArray(remoteData.weeklyStudy)) trackerData.weeklyStudy = remoteData.weeklyStudy;
+                        }
                     }
                 } catch (e) {
-                    console.warn("Could not load data.json, rendering fallback data.", e);
+                    console.warn("Could not load data.json, using local fallback data.", e);
                 } finally {
                     renderProjects();
                     renderExams();
                     renderChart();
                 }
+            }
+
+            function encodeBase64Utf8(str) {
+                const bytes = new TextEncoder().encode(str);
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return btoa(binary);
             }
 
             async function commitToGitHub() {
@@ -347,7 +394,7 @@
                     if (!getRes.ok) throw new Error("Could not authenticate with GitHub.");
                     const fileMeta = await getRes.json();
 
-                    const updatedContentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(trackerData, null, 2))));
+                    const updatedContentBase64 = encodeBase64Utf8(JSON.stringify(trackerData, null, 2));
                     const putRes = await fetch(getUrl, {
                         method: 'PUT',
                         headers: {
@@ -379,7 +426,8 @@
                 projectSelect.innerHTML = '';
                 projectList.innerHTML = '';
 
-                trackerData.projects.forEach(proj => {
+                const projectsList = trackerData.projects || [];
+                projectsList.forEach(proj => {
                     const opt = document.createElement('option');
                     opt.value = proj.id;
                     opt.textContent = proj.name;
@@ -401,7 +449,8 @@
                 examList.innerHTML = '';
                 const now = new Date().getTime();
 
-                const sortedExams = [...trackerData.exams].sort((a, b) => new Date(a.date) - new Date(b.date));
+                const examsList = trackerData.exams || [];
+                const sortedExams = [...examsList].sort((a, b) => new Date(a.date) - new Date(b.date));
 
                 sortedExams.forEach(exam => {
                     const examTime = new Date(exam.date).getTime();
@@ -437,10 +486,11 @@
                 if (!chartContainer) return;
                 chartContainer.innerHTML = '';
 
-                const maxHours = Math.max(...trackerData.weeklyStudy.map(d => d.hours), 6.0);
+                const weeklyList = trackerData.weeklyStudy || [];
+                const maxHours = Math.max(...weeklyList.map(d => d.hours), 6.0);
                 let totalWeeklyHours = 0;
 
-                trackerData.weeklyStudy.forEach(entry => {
+                weeklyList.forEach(entry => {
                     totalWeeklyHours += entry.hours;
                     const heightPercent = (entry.hours / maxHours) * 100;
                     const isToday = entry.day === "Today";
@@ -500,7 +550,39 @@
                     clearInterval(timerInterval);
                     const hoursAdded = elapsedSeconds / 3600;
 
-                    // Update project total
                     const selectedProjId = projectSelect.value;
-                    const proj = trackerData.projects.find(p => p.id === selectedProjId);
+                    const proj = (trackerData.projects || []).find(p => p.id === selectedProjId);
                     if (proj) proj.totalHours += hoursAdded;
+
+                    const todayEntry = (trackerData.weeklyStudy || []).find(d => d.day === "Today");
+                    if (todayEntry) todayEntry.hours += hoursAdded;
+
+                    elapsedSeconds = 0;
+                    if (timerDisplay) timerDisplay.textContent = '00:00:00';
+                    if (startBtn) startBtn.style.display = 'inline-block';
+                    if (pauseBtn) pauseBtn.style.display = 'none';
+                    if (logBtn) logBtn.style.display = 'none';
+
+                    renderProjects();
+                    renderChart();
+                    await commitToGitHub();
+                });
+            }
+
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    clearInterval(timerInterval);
+                    elapsedSeconds = 0;
+                    if (timerDisplay) timerDisplay.textContent = '00:00:00';
+                    if (startBtn) startBtn.style.display = 'inline-block';
+                    if (pauseBtn) pauseBtn.style.display = 'none';
+                    if (logBtn) logBtn.style.display = 'none';
+                });
+            }
+
+            loadData();
+            setInterval(renderExams, 60000);
+        });
+    </script>
+</body>
+</html>
