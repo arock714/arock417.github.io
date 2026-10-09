@@ -1,0 +1,215 @@
+<script>
+    // GitHub Repository Configuration
+    const REPO_OWNER = "YOUR_GITHUB_USERNAME"; // e.g. "ericmelendez"
+    const REPO_NAME = "YOUR_REPO_NAME";         // e.g. "ericmelendez.github.io"
+    const FILE_PATH = "study/data.json";
+
+    // Default Fallback Data (Ensures the page renders even if data.json fails to load)
+    let trackerData = {
+        projects: [
+            { id: "1", name: "Flight Dynamics & Controls", totalHours: 24.5 },
+            { id: "2", name: "Orbital Mechanics", totalHours: 18.0 }
+        ],
+        exams: [
+            { name: "Flight Dynamics Midterm", date: "2026-10-28T14:00:00" }
+        ]
+    };
+
+    // DOM Elements
+    const projectSelect = document.getElementById('projectSelect');
+    const projectList = document.getElementById('projectList');
+    const examList = document.getElementById('examList');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+
+    // Render Functions
+    function renderProjects() {
+        if (!projectSelect || !projectList) return;
+        projectSelect.innerHTML = '';
+        projectList.innerHTML = '';
+
+        trackerData.projects.forEach(proj => {
+            const opt = document.createElement('option');
+            opt.value = proj.id;
+            opt.textContent = proj.name;
+            projectSelect.appendChild(opt);
+
+            const li = document.createElement('li');
+            li.className = 'list-item';
+            li.innerHTML = `
+                <span class="item-title">${proj.name}</span>
+                <span class="item-sub" style="font-weight: bold; color: var(--accent-cyan);">${Number(proj.totalHours).toFixed(1)} hrs</span>
+            `;
+            projectList.appendChild(li);
+        });
+    }
+
+    function renderExams() {
+        if (!examList) return;
+        examList.innerHTML = '';
+        const now = new Date().getTime();
+
+        const sortedExams = [...trackerData.exams].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        sortedExams.forEach(exam => {
+            const examTime = new Date(exam.date).getTime();
+            const diffMs = examTime - now;
+
+            let countdownText = "";
+            if (diffMs <= 0) {
+                countdownText = "Completed";
+            } else {
+                const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                countdownText = `${days}d ${hours}h left`;
+            }
+
+            const dateFormatted = new Date(exam.date).toLocaleString([], {
+                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+
+            const li = document.createElement('li');
+            li.className = 'list-item';
+            li.innerHTML = `
+                <div>
+                    <div class="item-title">${exam.name}</div>
+                    <div class="item-sub">${dateFormatted}</div>
+                </div>
+                <span class="countdown-badge">${countdownText}</span>
+            `;
+            examList.appendChild(li);
+        });
+    }
+
+    // Safe Data Loading
+    async function loadData() {
+        try {
+            const res = await fetch(`./data.json?cache=${Date.now()}`);
+            if (res.ok) {
+                const remoteData = await res.json();
+                if (remoteData && remoteData.projects) {
+                    trackerData = remoteData;
+                }
+            } else {
+                console.warn("data.json not found, using fallback data.");
+            }
+        } catch (err) {
+            console.warn("Could not fetch data.json, rendering fallback data:", err);
+        } finally {
+            // ALWAYS render, regardless of whether fetch succeeded or failed
+            renderProjects();
+            renderExams();
+        }
+    }
+
+    // Timer Controls
+    function formatHMS(sec) {
+        const h = Math.floor(sec / 3600).toString().padStart(2, '0');
+        const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
+        const s = (sec % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    startBtn.addEventListener('click', () => {
+        startBtn.style.display = 'none';
+        stopBtn.style.display = 'inline-block';
+        timerInterval = setInterval(() => {
+            elapsedSeconds++;
+            timerDisplay.textContent = formatHMS(elapsedSeconds);
+        }, 1000);
+    });
+
+    stopBtn.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        startBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'none';
+    });
+
+    resetBtn.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        elapsedSeconds = 0;
+        timerDisplay.textContent = '00:00:00';
+        startBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'none';
+    });
+
+    // GitHub Commit Logic
+    async function getFileSha(token) {
+        const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
+        const res = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+        if (!res.ok) throw new Error("Could not reach GitHub repository.");
+        const data = await res.json();
+        return data.sha;
+    }
+
+    async function commitToGitHub() {
+        const token = localStorage.getItem('gh_pat_token') || document.getElementById('ghTokenInput').value.trim();
+        if (!token) {
+            alert("Please enter a GitHub Access Token first.");
+            return;
+        }
+
+        try {
+            const currentSha = await getFileSha(token);
+            const updatedContentBase64 = btoa(JSON.stringify(trackerData, null, 2));
+
+            const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: "Update study tracker data via website",
+                    content: updatedContentBase64,
+                    sha: currentSha
+                })
+            });
+
+            if (response.ok) {
+                alert("Successfully committed updates to GitHub! Page will reload.");
+                location.reload();
+            } else {
+                const err = await response.json();
+                alert(`Commit failed: ${err.message}`);
+            }
+        } catch (e) {
+            alert(`Error updating GitHub: ${e.message}`);
+        }
+    }
+
+    // Admin Controls Setup
+    const saveTokenBtn = document.getElementById('saveTokenBtn');
+    if (saveTokenBtn) {
+        saveTokenBtn.addEventListener('click', () => {
+            const token = document.getElementById('ghTokenInput').value.trim();
+            if (token) {
+                localStorage.setItem('gh_pat_token', token);
+                alert("Token saved in browser storage!");
+            }
+        });
+    }
+
+    const adminToggleBtn = document.getElementById('adminToggleBtn');
+    if (adminToggleBtn) {
+        adminToggleBtn.addEventListener('click', () => {
+            const panel = document.getElementById('adminPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            const savedToken = localStorage.getItem('gh_pat_token');
+            if (savedToken) document.getElementById('ghTokenInput').value = savedToken;
+        });
+    }
+
+    const commitBtn = document.getElementById('commitBtn');
+    if (commitBtn) commitBtn.addEventListener('click', commitToGitHub);
+
+    // Initial Load Sequence
+    loadData();
+    setInterval(renderExams, 60000);
+</script>

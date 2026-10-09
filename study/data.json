@@ -1,0 +1,11 @@
+{
+  "projects": [
+    { "id": "1", "name": "Flight Dynamics & Controls", "totalHours": 24.5 },
+    { "id": "2", "name": "Orbital Mechanics", "totalHours": 18.0 },
+    { "id": "3", "name": "NASA USLI Payload Development", "totalHours": 42.0 }
+  ],
+  "exams": [
+    { "name": "Flight Dynamics Midterm", "date": "2026-10-28T14:00:00" },
+    { "name": "Orbital Mechanics Exam 1", "date": "2026-11-12T09:30:00" }
+  ]
+}
