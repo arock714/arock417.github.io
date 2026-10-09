@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study & Exam Tracker | Eric Melendez</title>
 
+    <!-- Cross-platform Carlito / Calibri font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
@@ -19,6 +20,7 @@
             --accent-cyan: #38bdf8;
             --accent-green: #34d399;
             --accent-red: #f87171;
+            --accent-purple: #a78bfa;
             --input-bg: #141416;
         }
 
@@ -28,7 +30,7 @@
             font-family: 'Carlito', Calibri, "Segoe UI", sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
             padding: 24px 16px;
             line-height: 1.5;
@@ -40,12 +42,19 @@
             align-items: center;
             border-bottom: 1px solid var(--border);
             padding-bottom: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         h1 { font-size: 1.5rem; color: var(--accent-cyan); }
         header a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: bold; }
         header a:hover { color: var(--accent-cyan); }
+
+        .token-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
 
         .dashboard {
             display: grid;
@@ -62,6 +71,8 @@
             padding: 16px;
         }
 
+        .full-width { grid-column: 1 / -1; }
+
         .card-title {
             font-size: 1.05rem;
             font-weight: bold;
@@ -75,7 +86,7 @@
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 16px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .timer-time {
@@ -89,11 +100,12 @@
         .timer-controls {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             margin-top: 10px;
+            flex-wrap: wrap;
         }
 
-        select {
+        select, input[type="password"] {
             width: 100%;
             background: var(--input-bg);
             border: 1px solid var(--border);
@@ -102,8 +114,9 @@
             border-radius: 5px;
             font-family: inherit;
             font-size: 0.9rem;
-            margin-bottom: 12px;
         }
+
+        select { margin-bottom: 12px; }
 
         button {
             background: var(--accent-cyan);
@@ -118,6 +131,7 @@
 
         .btn-green { background: var(--accent-green); color: #000; }
         .btn-red { background: var(--accent-red); color: #000; }
+        .btn-purple { background: var(--accent-purple); color: #000; }
 
         .list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
 
@@ -142,6 +156,59 @@
             font-weight: bold;
             font-size: 0.85rem;
         }
+
+        /* --- Bar Chart Styling --- */
+        .chart-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 160px;
+            padding-top: 24px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+        }
+
+        .chart-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .chart-bar-wrap {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .chart-bar {
+            width: 100%;
+            max-width: 36px;
+            background: var(--accent-cyan);
+            border-radius: 4px 4px 0 0;
+            transition: height 0.4s ease, background-color 0.2s;
+            min-height: 4px;
+        }
+
+        .chart-bar.today { background: var(--accent-green); }
+
+        .chart-val {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .chart-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -151,7 +218,15 @@
         <a href="/">← Main Portfolio</a>
     </header>
 
+    <!-- GitHub Personal Access Token Config Bar -->
+    <div class="token-bar">
+        <input type="password" id="ghTokenInput" placeholder="GitHub PAT (github_pat_...)" style="max-width: 260px;">
+        <button id="saveTokenBtn" style="background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border);">Save Token</button>
+    </div>
+
     <div class="dashboard">
+
+        <!-- ACTIVE STUDY SESSION & PROJECT LIST -->
         <div class="card">
             <div class="card-title">📚 Active Study Session</div>
 
@@ -161,7 +236,8 @@
                 <div class="timer-time" id="timerDisplay">00:00:00</div>
                 <div class="timer-controls">
                     <button id="startBtn" class="btn-green">Start</button>
-                    <button id="stopBtn" class="btn-red" style="display: none;">Stop</button>
+                    <button id="pauseBtn" class="btn-red" style="display: none;">Pause</button>
+                    <button id="logBtn" class="btn-purple" style="display: none;">+ Log Time</button>
                     <button id="resetBtn" style="background: var(--border); color: var(--text);">Reset</button>
                 </div>
             </div>
@@ -170,23 +246,49 @@
             <ul class="list" id="projectList"></ul>
         </div>
 
+        <!-- UPCOMING EXAMS -->
         <div class="card">
             <div class="card-title">🎯 Upcoming Exams</div>
             <ul class="list" id="examList"></ul>
         </div>
+
+        <!-- WEEKLY ACTIVITY BAR CHART -->
+        <div class="card full-width">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div class="card-title" style="margin-bottom: 0;">📊 Study Time (Past 7 Days)</div>
+                <div id="weeklyTotalDisplay" style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: bold;">Total: 0.0 hrs</div>
+            </div>
+            
+            <div class="chart-container" id="chartContainer"></div>
+        </div>
+
     </div>
 
     <script>
-        const ERIC_PROJECTS = [
-            { id: "1", name: "Flight Dynamics & Controls", totalHours: 24.5 },
-            { id: "2", name: "Orbital Mechanics", totalHours: 18.0 },
-            { id: "3", name: "NASA USLI Payload Development", totalHours: 42.0 }
-        ];
+        // --- REPOSITORY CONFIGURATION ---
+        const REPO_OWNER = "YOUR_GITHUB_USERNAME"; // e.g. "ericmelendez"
+        const REPO_NAME = "YOUR_REPO_NAME";         // e.g. "ericmelendez.github.io"
+        const FILE_PATH = "study/data.json";
 
-        const ERIC_EXAMS = [
-            { name: "Flight Dynamics Midterm", date: "2026-10-28T14:00:00" },
-            { name: "Orbital Mechanics Exam 1", date: "2026-11-12T09:30:00" }
-        ];
+        // Fallback state if data.json is unreachable
+        let trackerData = {
+            projects: [
+                { id: "1", name: "Flight Dynamics & Controls", totalHours: 24.5 },
+                { id: "2", name: "Orbital Mechanics", totalHours: 18.0 }
+            ],
+            exams: [
+                { name: "Flight Dynamics Midterm", date: "2026-10-28T14:00:00" }
+            ],
+            weeklyStudy: [
+                { day: "Sat", hours: 2.5 },
+                { day: "Sun", hours: 4.0 },
+                { day: "Mon", hours: 1.5 },
+                { day: "Tue", hours: 3.5 },
+                { day: "Wed", hours: 2.0 },
+                { day: "Thu", hours: 5.0 },
+                { day: "Today", hours: 1.2 }
+            ]
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             const projectSelect = document.getElementById('projectSelect');
@@ -194,28 +296,101 @@
             const examList = document.getElementById('examList');
             const timerDisplay = document.getElementById('timerDisplay');
             const startBtn = document.getElementById('startBtn');
-            const stopBtn = document.getElementById('stopBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const logBtn = document.getElementById('logBtn');
             const resetBtn = document.getElementById('resetBtn');
+            const chartContainer = document.getElementById('chartContainer');
+            const weeklyTotalDisplay = document.getElementById('weeklyTotalDisplay');
+            const ghTokenInput = document.getElementById('ghTokenInput');
+            const saveTokenBtn = document.getElementById('saveTokenBtn');
 
             let timerInterval = null;
             let elapsedSeconds = 0;
 
+            if (ghTokenInput) {
+                ghTokenInput.value = localStorage.getItem('gh_pat_token') || '';
+            }
+
+            if (saveTokenBtn) {
+                saveTokenBtn.addEventListener('click', () => {
+                    localStorage.setItem('gh_pat_token', ghTokenInput.value.trim());
+                    alert('GitHub Access Token saved in browser storage!');
+                });
+            }
+
+            async function loadData() {
+                try {
+                    const res = await fetch(`./data.json?cache=${Date.now()}`);
+                    if (res.ok) {
+                        const remoteData = await res.json();
+                        if (remoteData && remoteData.projects) trackerData = remoteData;
+                    }
+                } catch (e) {
+                    console.warn("Could not load data.json, rendering fallback data.", e);
+                } finally {
+                    renderProjects();
+                    renderExams();
+                    renderChart();
+                }
+            }
+
+            async function commitToGitHub() {
+                const token = localStorage.getItem('gh_pat_token') || (ghTokenInput ? ghTokenInput.value.trim() : '');
+                if (!token) {
+                    alert("Time updated locally! Enter your GitHub Token at the top right to save changes permanently to your repo.");
+                    return;
+                }
+
+                try {
+                    const getUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
+                    const getRes = await fetch(getUrl, { headers: { 'Authorization': `token ${token}` } });
+                    if (!getRes.ok) throw new Error("Could not authenticate with GitHub.");
+                    const fileMeta = await getRes.json();
+
+                    const updatedContentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(trackerData, null, 2))));
+                    const putRes = await fetch(getUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: "Log study session hours via website",
+                            content: updatedContentBase64,
+                            sha: fileMeta.sha
+                        })
+                    });
+
+                    if (putRes.ok) {
+                        console.log("Logged hours successfully committed to GitHub!");
+                    } else {
+                        const err = await putRes.json();
+                        alert(`GitHub Sync Failed: ${err.message}`);
+                    }
+                } catch (err) {
+                    console.error("Error committing to GitHub:", err);
+                    alert(`Could not sync to GitHub: ${err.message}`);
+                }
+            }
+
             function renderProjects() {
                 if (!projectSelect || !projectList) return;
+                const currentSelected = projectSelect.value;
                 projectSelect.innerHTML = '';
                 projectList.innerHTML = '';
 
-                ERIC_PROJECTS.forEach(proj => {
+                trackerData.projects.forEach(proj => {
                     const opt = document.createElement('option');
                     opt.value = proj.id;
                     opt.textContent = proj.name;
+                    if (proj.id === currentSelected) opt.selected = true;
                     projectSelect.appendChild(opt);
 
                     const li = document.createElement('li');
                     li.className = 'list-item';
                     li.innerHTML = `
                         <span class="item-title">${proj.name}</span>
-                        <span class="item-sub" style="font-weight: bold; color: var(--accent-cyan);">${proj.totalHours.toFixed(1)} hrs</span>
+                        <span class="item-sub" style="font-weight: bold; color: var(--accent-cyan);">${Number(proj.totalHours).toFixed(1)} hrs</span>
                     `;
                     projectList.appendChild(li);
                 });
@@ -226,7 +401,7 @@
                 examList.innerHTML = '';
                 const now = new Date().getTime();
 
-                const sortedExams = [...ERIC_EXAMS].sort((a, b) => new Date(a.date) - new Date(b.date));
+                const sortedExams = [...trackerData.exams].sort((a, b) => new Date(a.date) - new Date(b.date));
 
                 sortedExams.forEach(exam => {
                     const examTime = new Date(exam.date).getTime();
@@ -258,6 +433,35 @@
                 });
             }
 
+            function renderChart() {
+                if (!chartContainer) return;
+                chartContainer.innerHTML = '';
+
+                const maxHours = Math.max(...trackerData.weeklyStudy.map(d => d.hours), 6.0);
+                let totalWeeklyHours = 0;
+
+                trackerData.weeklyStudy.forEach(entry => {
+                    totalWeeklyHours += entry.hours;
+                    const heightPercent = (entry.hours / maxHours) * 100;
+                    const isToday = entry.day === "Today";
+
+                    const col = document.createElement('div');
+                    col.className = 'chart-col';
+                    col.innerHTML = `
+                        <div class="chart-val">${entry.hours > 0 ? entry.hours.toFixed(1) : ''}</div>
+                        <div class="chart-bar-wrap">
+                            <div class="chart-bar ${isToday ? 'today' : ''}" style="height: ${heightPercent}%;"></div>
+                        </div>
+                        <div class="chart-label">${entry.day}</div>
+                    `;
+                    chartContainer.appendChild(col);
+                });
+
+                if (weeklyTotalDisplay) {
+                    weeklyTotalDisplay.textContent = `Total: ${totalWeeklyHours.toFixed(1)} hrs`;
+                }
+            }
+
             function formatHMS(sec) {
                 const h = Math.floor(sec / 3600).toString().padStart(2, '0');
                 const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
@@ -268,7 +472,9 @@
             if (startBtn) {
                 startBtn.addEventListener('click', () => {
                     startBtn.style.display = 'none';
-                    if (stopBtn) stopBtn.style.display = 'inline-block';
+                    if (pauseBtn) pauseBtn.style.display = 'inline-block';
+                    if (logBtn) logBtn.style.display = 'inline-block';
+
                     timerInterval = setInterval(() => {
                         elapsedSeconds++;
                         if (timerDisplay) timerDisplay.textContent = formatHMS(elapsedSeconds);
@@ -276,27 +482,25 @@
                 });
             }
 
-            if (stopBtn) {
-                stopBtn.addEventListener('click', () => {
+            if (pauseBtn) {
+                pauseBtn.addEventListener('click', () => {
                     clearInterval(timerInterval);
                     if (startBtn) startBtn.style.display = 'inline-block';
-                    stopBtn.style.display = 'none';
+                    pauseBtn.style.display = 'none';
                 });
             }
 
-            if (resetBtn) {
-                resetBtn.addEventListener('click', () => {
-                    clearInterval(timerInterval);
-                    elapsedSeconds = 0;
-                    if (timerDisplay) timerDisplay.textContent = '00:00:00';
-                    if (startBtn) startBtn.style.display = 'inline-block';
-                    if (stopBtn) stopBtn.style.display = 'none';
-                });
-            }
+            if (logBtn) {
+                logBtn.addEventListener('click', async () => {
+                    if (elapsedSeconds === 0) {
+                        alert("Start the timer first to log study time.");
+                        return;
+                    }
 
-            renderProjects();
-            renderExams();
-        });
-    </script>
-</body>
-</html>
+                    clearInterval(timerInterval);
+                    const hoursAdded = elapsedSeconds / 3600;
+
+                    // Update project total
+                    const selectedProjId = projectSelect.value;
+                    const proj = trackerData.projects.find(p => p.id === selectedProjId);
+                    if (proj) proj.totalHours += hoursAdded;
