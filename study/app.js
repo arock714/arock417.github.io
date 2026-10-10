@@ -1,13 +1,31 @@
 // --- SUPABASE DATABASE CONFIGURATION ---
 const SUPABASE_URL = "https://xkwdguskmvschpmkkwxs.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE"; // <-- Make sure your anon key is pasted here
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; // <-- Paste your anon key here if using Supabase
 
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const supabase = window.supabase && !SUPABASE_ANON_KEY.includes("YOUR_") 
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
+    : null;
 
+// Initial Fallback Starter Data (Ensures page is NEVER blank)
 let trackerData = {
-    projects: [],
-    exams: [],
-    weeklyStudy: []
+    projects: [
+        { id: "1", name: "Flight Dynamics & Controls", totalHours: 24.5 },
+        { id: "2", name: "Orbital Mechanics", totalHours: 18.0 },
+        { id: "3", name: "NASA USLI Payload Development", totalHours: 42.0 },
+        { id: "4", name: "SolidWorks Modeling", totalHours: 12.0 }
+    ],
+    exams: [
+        { name: "Flight Dynamics Midterm", date: "2026-10-28T14:00:00" },
+        { name: "Orbital Mechanics Exam 1", date: "2026-11-12T09:30:00" },
+        { name: "Structures & Materials Final", date: "2026-12-18T10:00:00" }
+    ],
+    weeklyStudy: [
+        { day: "9/27", hours: 2.0 }, { day: "9/28", hours: 3.5 }, { day: "9/29", hours: 1.0 },
+        { day: "9/30", hours: 4.5 }, { day: "10/1", hours: 2.5 }, { day: "10/2", hours: 5.0 },
+        { day: "10/3", hours: 3.0 }, { day: "10/4", hours: 1.5 }, { day: "10/5", hours: 4.0 },
+        { day: "10/6", hours: 2.0 }, { day: "10/7", hours: 3.0 }, { day: "10/8", hours: 5.5 },
+        { day: "10/9", hours: 2.0 }, { day: "Today", hours: 1.2 }
+    ]
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,14 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('resetBtn');
     const chartContainer = document.getElementById('chartContainer');
     const weeklyTotalDisplay = document.getElementById('weeklyTotalDisplay');
-    const syncStatus = document.getElementById('syncStatus');
 
-    // Manual Time Inputs
     const manualHours = document.getElementById('manualHours');
     const manualMins = document.getElementById('manualMins');
     const manualLogBtn = document.getElementById('manualLogBtn');
 
-    // Modal Editor Elements
     const openEditorBtn = document.getElementById('openEditorBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const editorModal = document.getElementById('editorModal');
@@ -39,52 +54,51 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerInterval = null;
     let elapsedSeconds = 0;
 
-    // Fetch initial data from Supabase DB
-    async function loadFromDatabase() {
-        if (!supabase) return;
-        try {
-            const { data, error } = await supabase
-                .from('study_dashboard')
-                .select('data')
-                .eq('id', 'main')
-                .single();
-
-            if (error) throw error;
-            if (data && data.data) {
-                trackerData = data.data;
-                if (syncStatus) syncStatus.textContent = "⚡ Supabase Database: Connected";
-            }
-        } catch (err) {
-            console.warn("Could not fetch from Supabase, checking local storage.", err);
-            if (syncStatus) syncStatus.textContent = "⚠️ Offline / Local Storage Mode";
-            const local = localStorage.getItem('study_db_fallback');
-            if (local) trackerData = JSON.parse(local);
-        } finally {
-            renderProjects();
-            renderExams();
-            renderChart();
+    async function loadData() {
+        // Try loading from localStorage fallback first
+        const local = localStorage.getItem('study_tracker_data');
+        if (local) {
+            try {
+                trackerData = JSON.parse(local);
+            } catch (e) {}
         }
+
+        // Try loading from Supabase if configured
+        if (supabase) {
+            try {
+                const { data, error } = await supabase
+                    .from('study_dashboard')
+                    .select('data')
+                    .eq('id', 'main')
+                    .single();
+
+                if (!error && data && data.data) {
+                    trackerData = data.data;
+                }
+            } catch (err) {
+                console.warn("Supabase load fallback:", err);
+            }
+        }
+
+        renderProjects();
+        renderExams();
+        renderChart();
     }
 
-    // Save updated data to Supabase DB
-    async function saveToDatabase() {
-        localStorage.setItem('study_db_fallback', JSON.stringify(trackerData));
+    async function saveData() {
+        localStorage.setItem('study_tracker_data', JSON.stringify(trackerData));
         renderProjects();
         renderExams();
         renderChart();
 
-        if (!supabase) return;
-
-        try {
-            const { error } = await supabase
-                .from('study_dashboard')
-                .upsert({ id: 'main', data: trackerData });
-
-            if (error) throw error;
-            console.log("Successfully synchronized with Supabase!");
-        } catch (err) {
-            console.error("Error writing to Supabase DB:", err);
-            alert("Database write error: " + err.message);
+        if (supabase) {
+            try {
+                await supabase
+                    .from('study_dashboard')
+                    .upsert({ id: 'main', data: trackerData });
+            } catch (err) {
+                console.error("Supabase save error:", err);
+            }
         }
     }
 
@@ -103,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
             projectSelect.appendChild(opt);
 
             const li = document.createElement('li');
-            li.innerHTML = `<span class="item-title">${proj.name}</span>` +
-                `<span class="item-hrs">${Number(proj.totalHours).toFixed(1)} hrs</span>`;
+            li.innerHTML = `<span class="item-name">${proj.name}</span>` +
+                `<span class="item-val">${Number(proj.totalHours).toFixed(1)} hrs</span>`;
             projectList.appendChild(li);
         });
     }
@@ -136,10 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const li = document.createElement('li');
             li.innerHTML = `<div>` +
-                `<div class="item-title">${exam.name}</div>` +
-                `<div style="font-size:10px; color:#94a3b8;">${dateFormatted}</div>` +
+                `<div class="item-name">${exam.name}</div>` +
+                `<div style="font-size:0.8rem; color: var(--text-muted);">${dateFormatted}</div>` +
                 `</div>` +
-                `<span class="badge-2000s">${countdownText}</span>`;
+                `<span class="item-val">${countdownText}</span>`;
             examList.appendChild(li);
         });
     }
@@ -179,30 +193,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${h}:${m}:${s}`;
     }
 
-    // Modal Manager Render (Subject Delete + Exam Inline Edit/Delete)
     function renderManagerList() {
         if (!manageItemsList) return;
         manageItemsList.innerHTML = '';
 
         const pTitle = document.createElement('div');
         pTitle.style.fontWeight = 'bold';
-        pTitle.style.margin = '6px 0';
+        pTitle.style.margin = '8px 0 4px 0';
         pTitle.textContent = "Subjects:";
         manageItemsList.appendChild(pTitle);
 
         (trackerData.projects || []).forEach((proj, idx) => {
             const row = document.createElement('div');
-            row.className = 'item-edit-row';
+            row.className = 'edit-block';
             row.style.display = 'flex';
             row.style.alignItems = 'center';
-            row.innerHTML = `<span style="flex: 1; font-weight: bold; color: #f1f5f9;">${proj.name} (${proj.totalHours.toFixed(1)} hrs)</span>`;
-            
+            row.innerHTML = `<span style="flex: 1; font-weight: bold;">${proj.name} (${proj.totalHours.toFixed(1)} hrs)</span>`;
+
             const delBtn = document.createElement('button');
-            delBtn.className = 'btn-red';
             delBtn.textContent = 'Delete';
             delBtn.onclick = async () => {
                 trackerData.projects.splice(idx, 1);
-                await saveToDatabase();
+                await saveData();
                 renderManagerList();
             };
             row.appendChild(delBtn);
@@ -211,30 +223,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const eTitle = document.createElement('div');
         eTitle.style.fontWeight = 'bold';
-        eTitle.style.margin = '12px 0 6px 0';
+        eTitle.style.margin = '14px 0 4px 0';
         eTitle.textContent = "Exams & Dates:";
         manageItemsList.appendChild(eTitle);
 
         (trackerData.exams || []).forEach((ex, idx) => {
             const row = document.createElement('div');
-            row.className = 'item-edit-row';
-
-            // Format date for datetime-local input (YYYY-MM-DDTHH:mm)
+            row.className = 'edit-block';
             const dateVal = ex.date ? ex.date.substring(0, 16) : '';
 
             row.innerHTML = `
-                <div style="margin-bottom: 4px;">
-                    <input type="text" id="editExamName_${idx}" value="${ex.name}" style="margin-bottom: 4px;">
-                    <input type="datetime-local" id="editExamDate_${idx}" value="${dateVal}" style="margin-bottom: 4px;">
+                <div style="margin-bottom: 6px;">
+                    <input type="text" id="editExamName_${idx}" value="${ex.name}">
+                    <input type="datetime-local" id="editExamDate_${idx}" value="${dateVal}">
                 </div>
-                <div style="display: flex; gap: 4px; justify-content: flex-end;">
-                    <button id="saveExamBtn_${idx}" class="btn-green">Save Changes</button>
-                    <button id="delExamBtn_${idx}" class="btn-red">Delete</button>
+                <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                    <button id="saveExamBtn_${idx}" class="btn-blue">Save</button>
+                    <button id="delExamBtn_${idx}">Delete</button>
                 </div>
             `;
             manageItemsList.appendChild(row);
 
-            // Bind inline save/delete actions
             setTimeout(() => {
                 const saveBtn = document.getElementById(`saveExamBtn_${idx}`);
                 const delBtn = document.getElementById(`delExamBtn_${idx}`);
@@ -243,12 +252,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     saveBtn.onclick = async () => {
                         const newName = document.getElementById(`editExamName_${idx}`).value.trim();
                         const newDate = document.getElementById(`editExamDate_${idx}`).value;
-                        if (!newName || !newDate) return alert("Exam title and date cannot be empty.");
+                        if (!newName || !newDate) return alert("Fill in title and date.");
 
                         trackerData.exams[idx].name = newName;
                         trackerData.exams[idx].date = newDate;
-                        await saveToDatabase();
-                        alert("Exam updated successfully!");
+                        await saveData();
+                        alert("Exam updated!");
                         renderManagerList();
                     };
                 }
@@ -256,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (delBtn) {
                     delBtn.onclick = async () => {
                         trackerData.exams.splice(idx, 1);
-                        await saveToDatabase();
+                        await saveData();
                         renderManagerList();
                     };
                 }
@@ -264,19 +273,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (openEditorBtn) openEditorBtn.onclick = () => { renderManagerList(); editorModal.style.display = 'flex'; };
+    if (openEditorBtn) openEditorBtn.onclick = (e) => { e.preventDefault(); renderManagerList(); editorModal.style.display = 'flex'; };
     if (closeModalBtn) closeModalBtn.onclick = () => { editorModal.style.display = 'none'; };
 
     if (addProjBtn) {
         addProjBtn.onclick = async () => {
             const name = document.getElementById('newProjName').value.trim();
             const hrs = parseFloat(document.getElementById('newProjHours').value) || 0;
-            if (!name) return alert("Enter project name");
+            if (!name) return alert("Enter subject title");
 
             trackerData.projects.push({ id: Date.now().toString(), name: name, totalHours: hrs });
             document.getElementById('newProjName').value = '';
             document.getElementById('newProjHours').value = '';
-            await saveToDatabase();
+            await saveData();
             renderManagerList();
         };
     }
@@ -285,53 +294,40 @@ document.addEventListener('DOMContentLoaded', () => {
         addExamBtn.onclick = async () => {
             const name = document.getElementById('newExamName').value.trim();
             const date = document.getElementById('newExamDate').value;
-            if (!name || !date) return alert("Enter exam name and date");
+            if (!name || !date) return alert("Enter exam title and date");
 
             trackerData.exams.push({ name: name, date: date });
             document.getElementById('newExamName').value = '';
             document.getElementById('newExamDate').value = '';
-            await saveToDatabase();
+            await saveData();
             renderManagerList();
         };
     }
 
-    // Manual Hours/Minutes Input Event
     if (manualLogBtn) {
         manualLogBtn.onclick = async () => {
             const hrs = parseFloat(manualHours.value) || 0;
             const mins = parseFloat(manualMins.value) || 0;
 
-            if (hrs === 0 && mins === 0) {
-                alert("Please enter hours or minutes to add.");
-                return;
-            }
+            if (hrs === 0 && mins === 0) return alert("Enter hours or minutes.");
 
-            const totalAddedHours = hrs + (mins / 60);
-
-            // Update selected project total
+            const totalAdded = hrs + (mins / 60);
             const selectedProjId = projectSelect.value;
             const proj = (trackerData.projects || []).find(p => p.id === selectedProjId);
-            if (proj) {
-                proj.totalHours += totalAddedHours;
-            } else {
-                alert("Please select a subject first!");
-                return;
-            }
+            if (!proj) return alert("Select a subject first.");
 
-            // Update Today's bar chart
+            proj.totalHours += totalAdded;
+
             const todayEntry = (trackerData.weeklyStudy || []).find(d => d.day === "Today");
-            if (todayEntry) todayEntry.hours += totalAddedHours;
+            if (todayEntry) todayEntry.hours += totalAdded;
 
-            // Clear input fields
             manualHours.value = '';
             manualMins.value = '';
 
-            // Save to DB & refresh UI
-            await saveToDatabase();
+            await saveData();
         };
     }
 
-    // Timer Session Controls
     if (startBtn) {
         startBtn.addEventListener('click', () => {
             startBtn.style.display = 'none';
@@ -355,10 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (logBtn) {
         logBtn.addEventListener('click', async () => {
-            if (elapsedSeconds === 0) {
-                alert("Start the timer first to log study time.");
-                return;
-            }
+            if (elapsedSeconds === 0) return;
 
             clearInterval(timerInterval);
             const hoursAdded = elapsedSeconds / 3600;
@@ -376,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pauseBtn) pauseBtn.style.display = 'none';
             if (logBtn) logBtn.style.display = 'none';
 
-            await saveToDatabase();
+            await saveData();
         });
     }
 
@@ -391,6 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    loadFromDatabase();
+    loadData();
     setInterval(renderExams, 60000);
 });

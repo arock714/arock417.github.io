@@ -5,226 +5,229 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>study</title>
 
-    <!-- Supabase JS Client Library -->
+    <!-- Carlito / Calibri font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
+        :root {
+            --bg: #faf7d9;
+            --text: #222222;
+            --text-muted: #666655;
+            --accent-blue: #4a90e2;
+            --border: #e2dfb3;
+            --panel-bg: #f5f2ca;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: Verdana, Tahoma, Arial, sans-serif;
-            background-color: #0b0f17;
-            background-image: linear-gradient(180deg, #0f172a 0%, #070a10 300px);
-            color: #e2e8f0;
-            font-size: 11px;
-            padding: 12px;
-            line-height: 1.4;
-        }
-
-        #portal-container {
-            max-width: 960px;
+            font-family: 'Carlito', Calibri, "Segoe UI", sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 800px;
             margin: 0 auto;
-            background-color: #131c2b;
-            border: 2px solid #2d4263;
-            border-radius: 6px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-            overflow: hidden;
+            padding: 32px 20px;
+            line-height: 1.5;
         }
 
-        /* --- 2000s Dark Web 2.0 Header Banner --- */
         header {
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            padding: 10px 16px;
-            color: #ffffff;
-            border-bottom: 3px solid #00d2ff;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .sub-nav {
+            font-size: 0.95rem;
+            color: var(--text-muted);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .logo-group h1 {
-            font-size: 1.4rem;
-            font-family: 'Trebuchet MS', Verdana, sans-serif;
-            font-weight: bold;
-            color: #ffffff;
-            text-shadow: 0 0 8px rgba(0, 210, 255, 0.4);
+        .sub-nav a {
+            color: var(--accent-blue);
+            text-decoration: none;
         }
 
-        .logo-group h1 span { color: #00d2ff; font-style: italic; }
-
-        .portal-nav { font-size: 10px; color: #94a3b8; }
-        .portal-nav a { color: #38bdf8; text-decoration: underline; font-weight: bold; }
-        .portal-nav a:hover { color: #7dd3fc; }
-
-        .control-strip {
-            background: #182232;
-            border-bottom: 1px solid #28374d;
-            padding: 6px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .sub-nav a:hover {
+            text-decoration: underline;
         }
 
-        .btn-group { display: flex; gap: 6px; }
-
-        button {
-            font-family: Verdana, sans-serif;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            border: 1px solid #0284c7;
-            background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
-            color: #000000;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+        hr.divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 16px 0 24px 0;
         }
 
-        button:hover { background: linear-gradient(180deg, #7dd3fc 0%, #0369a1 100%); }
-
-        .btn-green { border-color: #16a34a; background: linear-gradient(180deg, #4ade80 0%, #15803d 100%); color: #ffffff; }
-        .btn-red { border-color: #dc2626; background: linear-gradient(180deg, #f87171 0%, #b91c1c 100%); color: #ffffff; }
-        .btn-purple { border-color: #9333ea; background: linear-gradient(180deg, #c084fc 0%, #7e22ce 100%); color: #ffffff; }
-        .btn-amber { border-color: #d97706; background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); color: #000000; }
-
-        .portal-body {
-            padding: 12px;
+        .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 24px;
         }
 
-        @media (max-width: 768px) { .portal-body { grid-template-columns: 1fr; } }
+        @media (max-width: 650px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
 
-        .portal-box {
-            background: #182232;
-            border: 1px solid #2b3b52;
-            border-radius: 4px;
-            overflow: hidden;
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
         }
 
         .full-width { grid-column: 1 / -1; }
 
-        .box-header {
-            background: linear-gradient(180deg, #223248 0%, #131c2b 100%);
-            color: #38bdf8;
-            font-weight: bold;
-            padding: 5px 8px;
-            font-size: 11px;
-            border-bottom: 1px solid #28374d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .box-content { padding: 10px; }
-
         select, input[type="text"], input[type="number"], input[type="datetime-local"] {
+            font-family: inherit;
+            font-size: 0.95rem;
+            padding: 6px 10px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 4px;
             width: 100%;
-            font-size: 11px;
-            padding: 5px;
-            border: 1px solid #334155;
-            margin-bottom: 8px;
-            background: #090d16;
-            color: #f1f5f9;
-            border-radius: 3px;
+            margin-bottom: 10px;
         }
 
-        .timer-panel {
-            background: #0f172a;
-            border: 1px solid #28374d;
+        button {
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        button:hover {
+            background: var(--panel-bg);
+        }
+
+        .btn-blue {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border-color: var(--accent-blue);
+        }
+
+        .btn-blue:hover {
+            background: #357abd;
+        }
+
+        .timer-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 6px;
             text-align: center;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 3px;
+            margin-bottom: 16px;
         }
 
-        .timer-readout {
-            font-family: "Courier New", Courier, monospace;
-            font-size: 1.8rem;
+        .timer-display {
+            font-size: 2.2rem;
             font-weight: bold;
-            color: #00d2ff;
-            background: #050811;
-            border: 1px solid #1e293b;
-            display: inline-block;
-            padding: 2px 12px;
-            border-radius: 3px;
-            margin-bottom: 6px;
-            text-shadow: 0 0 6px rgba(0, 210, 255, 0.5);
-        }
-
-        .timer-btn-row { display: flex; justify-content: center; gap: 4px; }
-
-        /* Manual Input Box Styling */
-        .manual-entry-panel {
-            background: #0f172a;
-            border: 1px solid #28374d;
-            padding: 8px;
-            border-radius: 3px;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
             margin-bottom: 10px;
         }
 
-        .section-label {
-            font-weight: bold;
-            color: #38bdf8;
-            font-size: 10px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            border-bottom: 1px solid #28374d;
-            padding-bottom: 2px;
+        .manual-box {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
         }
 
-        .data-list { list-style: none; border: 1px solid #28374d; }
+        .data-list {
+            list-style: none;
+            border-top: 1px solid var(--border);
+        }
 
         .data-list li {
-            padding: 6px 8px;
-            border-bottom: 1px solid #222f42;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 0.95rem;
         }
 
-        .data-list li:nth-child(even) { background-color: #131c2b; }
-        .data-list li:nth-child(odd) { background-color: #182232; }
+        .item-name { font-weight: bold; }
+        .item-val { color: var(--accent-blue); font-weight: bold; }
 
-        .item-title { font-weight: bold; color: #f1f5f9; }
-        .item-hrs { font-weight: bold; color: #38bdf8; }
-
-        .badge-2000s {
-            background: #0f172a;
-            border: 1px solid #0284c7;
-            color: #38bdf8;
-            padding: 2px 6px;
-            font-size: 10px;
-            font-weight: bold;
-            border-radius: 2px;
-        }
-
-        .chart-box-container {
+        /* Minimal 14-Day Bar Chart */
+        .chart-box {
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
             height: 140px;
-            padding-top: 18px;
-            padding-bottom: 4px;
-            border: 1px solid #28374d;
-            background: #0b0f17;
-            gap: 3px;
-            padding-left: 4px;
-            padding-right: 4px;
+            padding-top: 20px;
+            gap: 4px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 6px;
         }
 
-        .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-        .chart-bar-wrap { width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
-        .chart-bar { width: 100%; max-width: 22px; background: linear-gradient(180deg, #38bdf8 0%, #0369a1 100%); border: 1px solid #0284c7; border-radius: 2px 2px 0 0; min-height: 3px; }
-        .chart-bar.today { background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%); border-color: #d97706; }
-        .chart-val { font-size: 9px; color: #94a3b8; margin-bottom: 2px; font-weight: bold; }
-        .chart-label { font-size: 9px; color: #94a3b8; margin-top: 4px; white-space: nowrap; }
+        .chart-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }
 
+        .chart-bar-wrap {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .chart-bar {
+            width: 100%;
+            max-width: 20px;
+            background: var(--accent-blue);
+            border-radius: 2px 2px 0 0;
+            min-height: 2px;
+        }
+
+        .chart-bar.today {
+            background: #222222;
+        }
+
+        .chart-val {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .chart-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            white-space: nowrap;
+        }
+
+        /* Modal Overlay */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.4);
             display: none;
             justify-content: center;
             align-items: center;
@@ -232,163 +235,128 @@
         }
 
         .modal-card {
-            background: #131c2b;
-            border: 2px solid #38bdf8;
+            background: var(--bg);
+            border: 1px solid var(--border);
             border-radius: 6px;
             width: 90%;
-            max-width: 520px;
+            max-width: 500px;
             max-height: 85vh;
             overflow-y: auto;
-            padding: 16px;
-            box-shadow: 0 0 25px rgba(0, 210, 255, 0.3);
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .modal-header {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: bold;
-            color: #38bdf8;
-            border-bottom: 1px solid #28374d;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
         }
 
-        .form-section {
-            background: #182232;
-            border: 1px solid #28374d;
+        .edit-block {
+            background: #ffffff;
+            border: 1px solid var(--border);
             padding: 10px;
-            margin-bottom: 12px;
             border-radius: 4px;
+            margin-bottom: 10px;
         }
-
-        .item-edit-row {
-            background: #0f172a;
-            border: 1px solid #28374d;
-            padding: 6px;
-            margin-bottom: 6px;
-            border-radius: 3px;
-        }
-
-        footer { background: #182232; border-top: 1px solid #28374d; text-align: center; padding: 8px; font-size: 10px; color: #64748b; }
     </style>
 </head>
 <body>
 
-    <div id="portal-container">
-        <header>
-            <div class="logo-group">
-                <h1>Study <span>Portal v2.0</span></h1>
-            </div>
-            <div class="portal-nav">
-                Resident: <strong>Eric Melendez</strong> | <a href="/">← Return to Main Portfolio</a>
-            </div>
-        </header>
-
-        <div class="control-strip">
-            <div id="syncStatus">⚡ Supabase Database: Connected</div>
-            <div class="btn-group">
-                <button id="openEditorBtn" class="btn-amber">✏️ Edit Subjects / Exams</button>
+    <header>
+        <h1>eric's study tracker</h1>
+        <div class="sub-nav">
+            <div>welcome!</div>
+            <div>
+                <a href="/">← portfolio</a> | 
+                <a href="#" id="openEditorBtn">manage subjects & exams</a>
             </div>
         </div>
+    </header>
 
-        <div class="portal-body">
+    <hr class="divider">
 
-            <!-- Active Study Tracker Box -->
-            <div class="portal-box">
-                <div class="box-header">
-                    <span>📚 Active Study Session</span>
-                </div>
-                <div class="box-content">
-                    <select id="projectSelect"></select>
+    <div class="dashboard-grid">
 
-                    <!-- Stopwatch Timer -->
-                    <div class="timer-panel">
-                        <div class="timer-readout" id="timerDisplay">00:00:00</div>
-                        <div class="timer-btn-row">
-                            <button id="startBtn" class="btn-green">► Start</button>
-                            <button id="pauseBtn" class="btn-red" style="display: none;">❚❚ Pause</button>
-                            <button id="logBtn" class="btn-purple" style="display: none;">+ Log Session</button>
-                            <button id="resetBtn">Reset</button>
-                        </div>
-                    </div>
+        <!-- Active Session -->
+        <div>
+            <div class="section-title">active session</div>
+            <select id="projectSelect"></select>
 
-                    <!-- Manual Time Logging Strip -->
-                    <div class="manual-entry-panel">
-                        <div class="section-label">⚡ Manual Time Entry</div>
-                        <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
-                            <input type="number" id="manualHours" placeholder="0" min="0" max="99" style="width: 55px; margin-bottom: 0;">
-                            <span style="color:#94a3b8; font-weight: bold;">hrs</span>
-                            <input type="number" id="manualMins" placeholder="0" min="0" max="59" style="width: 55px; margin-bottom: 0;">
-                            <span style="color:#94a3b8; font-weight: bold;">mins</span>
-                            <button id="manualLogBtn" class="btn-purple" style="margin-left: auto;">+ Add Time</button>
-                        </div>
-                    </div>
-
-                    <div class="section-label">Total Time Logged Per Subject</div>
-                    <ul class="data-list" id="projectList"></ul>
+            <div class="timer-box">
+                <div class="timer-display" id="timerDisplay">00:00:00</div>
+                <div style="display: flex; justify-content: center; gap: 8px;">
+                    <button id="startBtn" class="btn-blue">Start</button>
+                    <button id="pauseBtn" style="display: none;">Pause</button>
+                    <button id="logBtn" class="btn-blue" style="display: none;">Log Session</button>
+                    <button id="resetBtn">Reset</button>
                 </div>
             </div>
 
-            <!-- Upcoming Exams Box -->
-            <div class="portal-box">
-                <div class="box-header">
-                    <span>🎯 Scheduled Exams & Countdowns</span>
-                </div>
-                <div class="box-content">
-                    <div class="section-label">Upcoming Assessments</div>
-                    <ul class="data-list" id="examList"></ul>
-                </div>
-            </div>
-
-            <!-- 14-Day Activity Bar Chart Box -->
-            <div class="portal-box full-width">
-                <div class="box-header">
-                    <span>📊 Daily Study Hours (Past 14 Days)</span>
-                    <span id="weeklyTotalDisplay" style="color: #00d2ff;">Total: 0.0 hrs</span>
-                </div>
-                <div class="box-content">
-                    <div class="chart-box-container" id="chartContainer"></div>
+            <div class="manual-box">
+                <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px;">manual time entry</div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="number" id="manualHours" placeholder="0" min="0" style="width: 60px; margin-bottom: 0;">
+                    <span style="font-size: 0.85rem;">hrs</span>
+                    <input type="number" id="manualMins" placeholder="0" min="0" max="59" style="width: 60px; margin-bottom: 0;">
+                    <span style="font-size: 0.85rem;">mins</span>
+                    <button id="manualLogBtn" class="btn-blue" style="margin-left: auto;">Add</button>
                 </div>
             </div>
 
+            <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: var(--text-muted);">TOTAL LOGGED TIME</div>
+            <ul class="data-list" id="projectList"></ul>
         </div>
 
-        <footer>
-            Copyright © 2000-2026 Eric Melendez Web Services. All rights reserved.
-        </footer>
+        <!-- Scheduled Exams -->
+        <div>
+            <div class="section-title">upcoming exams</div>
+            <ul class="data-list" id="examList"></ul>
+        </div>
+
+        <!-- 14-Day Activity Chart -->
+        <div class="full-width">
+            <hr class="divider">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="section-title" style="margin-bottom: 0;">study activity (past 14 days)</div>
+                <div id="weeklyTotalDisplay" style="color: var(--accent-blue); font-weight: bold;">Total: 0.0 hrs</div>
+            </div>
+            <div class="chart-box" id="chartContainer"></div>
+        </div>
+
     </div>
 
     <!-- Modal Manager -->
     <div class="modal-overlay" id="editorModal">
         <div class="modal-card">
             <div class="modal-header">
-                <span>⚙️ Manage Projects & Exams</span>
-                <span id="closeModalBtn" style="cursor: pointer; color: #f87171;">✕</span>
+                <span>manage subjects & exams</span>
+                <span id="closeModalBtn" style="cursor: pointer;">✕</span>
             </div>
 
-            <div class="form-section">
-                <div class="section-label">Add New Subject/Project</div>
-                <input type="text" id="newProjName" placeholder="Project / Subject Title">
+            <div style="margin-bottom: 16px;">
+                <div style="font-weight: bold; margin-bottom: 6px;">Add Subject</div>
+                <input type="text" id="newProjName" placeholder="Subject Title">
                 <input type="number" id="newProjHours" placeholder="Initial Hours Logged" step="0.5">
-                <button id="addProjBtn" class="btn-green">+ Add Subject</button>
+                <button id="addProjBtn" class="btn-blue">+ Add Subject</button>
             </div>
 
-            <div class="form-section">
-                <div class="section-label">Add Upcoming Exam</div>
+            <div style="margin-bottom: 16px;">
+                <div style="font-weight: bold; margin-bottom: 6px;">Add Exam</div>
                 <input type="text" id="newExamName" placeholder="Exam Title">
                 <input type="datetime-local" id="newExamDate">
-                <button id="addExamBtn" class="btn-green">+ Add Exam</button>
+                <button id="addExamBtn" class="btn-blue">+ Add Exam</button>
             </div>
 
-            <div class="form-section">
-                <div class="section-label">Manage Existing Items & Exam Dates</div>
+            <div>
+                <div style="font-weight: bold; margin-bottom: 6px;">Edit Existing Items</div>
                 <div id="manageItemsList"></div>
             </div>
         </div>
     </div>
 
-    <!-- External Script -->
     <script src="app.js" defer></script>
 </body>
 </html>
