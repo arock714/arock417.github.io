@@ -1,10 +1,11 @@
 // --- SUPABASE DATABASE CONFIGURATION ---
 const SUPABASE_URL = "https://xkwdguskmvschpmkkwxs.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE"; // <-- Paste your anon key here
-const USER_ROW_ID = "zoya"; // Unique row key for Zoya in Supabase
-const LOCAL_STORAGE_KEY = "zoya_study_tracker_data";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE";
+const USER_ROW_ID = "zoya";
 
-// Helper functions for dynamic rolling dates
+// Clear out any old cached mock data
+try { localStorage.removeItem('zoya_study_tracker_data'); } catch (e) {}
+
 function getDateKey(offsetDays = 0) {
     const d = new Date();
     d.setDate(d.getDate() - offsetDays);
@@ -21,38 +22,18 @@ function getDateDisplayLabel(offsetDays = 0) {
     return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-function generateDefaultDailyLogs() {
-    const logs = {};
-    const sampleHours = [1.5, 2.0, 3.0, 2.5, 4.0, 1.0, 3.5, 2.0, 2.5, 3.0, 4.5, 2.0, 1.5, 2.0];
-    for (let i = 13; i >= 0; i--) {
-        const key = getDateKey(i);
-        logs[key] = sampleHours[13 - i];
-    }
-    return logs;
-}
-
-// Starter Data for Zoya
-const DEFAULT_DATA = {
+// Clean Initial State
+const EMPTY_DATA = {
     dailyGoal: 3.0,
-    projects: [
-        { id: "101", name: "Organic Chemistry", totalHours: 18.5 },
-        { id: "102", name: "Biochemistry", totalHours: 22.0 },
-        { id: "103", name: "Calculus II", totalHours: 15.0 },
-        { id: "104", name: "Physics & Lab", totalHours: 12.5 }
-    ],
-    exams: [
-        { name: "Organic Chemistry Midterm", date: "2026-11-05T10:00:00" },
-        { name: "Biochemistry Quiz 3", date: "2026-11-18T13:30:00" }
-    ],
-    dailyLogs: generateDefaultDailyLogs()
+    projects: [],
+    exams: [],
+    dailyLogs: {}
 };
 
-let trackerData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+let trackerData = JSON.parse(JSON.stringify(EMPTY_DATA));
 
 function getSupabaseClient() {
     if (typeof window.supabase === 'undefined') return null;
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
-    if (SUPABASE_URL.includes("YOUR_") || SUPABASE_ANON_KEY.includes("YOUR_")) return null;
     try {
         return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch (e) {
@@ -104,73 +85,61 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAll();
 
     async function loadData() {
-        try {
-            const local = localStorage.getItem(LOCAL_STORAGE_KEY);
-            if (local) {
-                const parsed = JSON.parse(local);
-                if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
-                    trackerData = parsed;
-                    if (!trackerData.dailyLogs) trackerData.dailyLogs = generateDefaultDailyLogs();
-                    if (!trackerData.dailyGoal) trackerData.dailyGoal = 3.0;
-                    renderAll();
-                }
-            }
-        } catch (e) {
-            console.warn("LocalStorage read error:", e);
+        const client = getSupabaseClient();
+        if (!client) {
+            if (dbStatus) dbStatus.textContent = "status: supabase library missing";
+            return;
         }
 
-        const client = getSupabaseClient();
-        if (client) {
-            if (dbStatus) dbStatus.textContent = "status: connecting to supabase...";
-            try {
-                const { data, error } = await client
-                    .from('study_dashboard')
-                    .select('data')
-                    .eq('id', USER_ROW_ID)
-                    .maybeSingle();
+        if (dbStatus) dbStatus.textContent = "status: connecting to supabase...";
+        try {
+            const { data, error } = await client
+                .from('study_dashboard')
+                .select('data')
+                .eq('id', USER_ROW_ID)
+                .maybeSingle();
 
-                if (error) {
-                    console.error("Supabase fetch error:", error);
-                    if (dbStatus) dbStatus.textContent = `status: error (${error.message || error.code})`;
-                } else if (data && data.data && Array.isArray(data.data.projects) && data.data.projects.length > 0) {
-                    trackerData = data.data;
-                    if (!trackerData.dailyLogs) trackerData.dailyLogs = generateDefaultDailyLogs();
-                    if (!trackerData.dailyGoal) trackerData.dailyGoal = 3.0;
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(trackerData));
-                    renderAll();
-                    if (dbStatus) dbStatus.textContent = "status: connected";
-                } else {
-                    if (dbStatus) dbStatus.textContent = "status: seeding initial data...";
-                    await saveData();
-                    if (dbStatus) dbStatus.textContent = "status: connected";
-                }
-            } catch (err) {
-                console.error("Supabase connection exception:", err);
-                if (dbStatus) dbStatus.textContent = "status: connection error";
+            if (error) {
+                console.error("Supabase fetch error:", error);
+                if (dbStatus) dbStatus.textContent = `status: error (${error.message || error.code})`;
+            } else if (data && data.data) {
+                trackerData = data.data;
+                if (!trackerData.dailyLogs) trackerData.dailyLogs = {};
+                if (!trackerData.dailyGoal) trackerData.dailyGoal = 3.0;
+                if (!trackerData.projects) trackerData.projects = [];
+                if (!trackerData.exams) trackerData.exams = [];
+                renderAll();
+                if (dbStatus) dbStatus.textContent = "status: connected";
+            } else {
+                if (dbStatus) dbStatus.textContent = "status: initializing database...";
+                await saveData();
+                if (dbStatus) dbStatus.textContent = "status: connected";
             }
-        } else {
-            if (dbStatus) dbStatus.textContent = "status: local storage mode";
+        } catch (err) {
+            console.error("Supabase connection exception:", err);
+            if (dbStatus) dbStatus.textContent = "status: connection error";
         }
     }
 
     async function saveData() {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(trackerData));
         renderAll();
 
         const client = getSupabaseClient();
-        if (client) {
-            try {
-                const { error } = await client
-                    .from('study_dashboard')
-                    .upsert({ id: USER_ROW_ID, data: trackerData });
+        if (!client) return;
 
-                if (error) {
-                    console.error("Supabase save error:", error);
-                    if (dbStatus) dbStatus.textContent = `status: save failed (${error.message})`;
-                }
-            } catch (err) {
-                console.error("Supabase save exception:", err);
+        try {
+            const { error } = await client
+                .from('study_dashboard')
+                .upsert({ id: USER_ROW_ID, data: trackerData });
+
+            if (error) {
+                console.error("Supabase save error:", error);
+                if (dbStatus) dbStatus.textContent = `status: save failed (${error.message})`;
+            } else {
+                if (dbStatus) dbStatus.textContent = "status: connected";
             }
+        } catch (err) {
+            console.error("Supabase save exception:", err);
         }
     }
 
@@ -195,6 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
         projectList.innerHTML = '';
 
         const projectsList = trackerData.projects || [];
+        if (projectsList.length === 0) {
+            projectList.innerHTML = `<li style="color: var(--text-muted);">No subjects added yet. Click "manage subjects & exams" above to add one.</li>`;
+            return;
+        }
+
         projectsList.forEach(proj => {
             const opt = document.createElement('option');
             opt.value = proj.id;
@@ -215,6 +189,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date().getTime();
 
         const examsList = trackerData.exams || [];
+        if (examsList.length === 0) {
+            examList.innerHTML = `<li style="color: var(--text-muted);">No upcoming exams scheduled.</li>`;
+            return;
+        }
+
         const sortedExams = [...examsList].sort((a, b) => new Date(a.date) - new Date(b.date));
 
         sortedExams.forEach(exam => {
@@ -332,24 +311,33 @@ document.addEventListener('DOMContentLoaded', () => {
         pTitle.textContent = "Subjects:";
         manageItemsList.appendChild(pTitle);
 
-        (trackerData.projects || []).forEach((proj, idx) => {
-            const row = document.createElement('div');
-            row.className = 'edit-block';
-            row.style.display = 'flex';
-            row.style.alignItems = 'center';
-            row.innerHTML = `<span style="flex: 1; font-weight: bold;">${proj.name} (${Number(proj.totalHours || 0).toFixed(1)} hrs)</span>`;
+        if ((trackerData.projects || []).length === 0) {
+            const emptyP = document.createElement('div');
+            emptyP.style.color = 'var(--text-muted)';
+            emptyP.style.fontSize = '0.85rem';
+            emptyP.style.marginBottom = '10px';
+            emptyP.textContent = 'No subjects added yet.';
+            manageItemsList.appendChild(emptyP);
+        } else {
+            trackerData.projects.forEach((proj, idx) => {
+                const row = document.createElement('div');
+                row.className = 'edit-block';
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.innerHTML = `<span style="flex: 1; font-weight: bold;">${proj.name} (${Number(proj.totalHours || 0).toFixed(1)} hrs)</span>`;
 
-            const delBtn = document.createElement('button');
-            delBtn.className = 'btn-outline';
-            delBtn.textContent = 'Delete';
-            delBtn.onclick = async () => {
-                trackerData.projects.splice(idx, 1);
-                await saveData();
-                renderManagerList();
-            };
-            row.appendChild(delBtn);
-            manageItemsList.appendChild(row);
-        });
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn-outline';
+                delBtn.textContent = 'Delete';
+                delBtn.onclick = async () => {
+                    trackerData.projects.splice(idx, 1);
+                    await saveData();
+                    renderManagerList();
+                };
+                row.appendChild(delBtn);
+                manageItemsList.appendChild(row);
+            });
+        }
 
         const eTitle = document.createElement('div');
         eTitle.style.fontWeight = 'bold';
@@ -357,50 +345,59 @@ document.addEventListener('DOMContentLoaded', () => {
         eTitle.textContent = "Exams & Dates:";
         manageItemsList.appendChild(eTitle);
 
-        (trackerData.exams || []).forEach((ex, idx) => {
-            const row = document.createElement('div');
-            row.className = 'edit-block';
-            const dateVal = ex.date ? ex.date.substring(0, 16) : '';
+        if ((trackerData.exams || []).length === 0) {
+            const emptyE = document.createElement('div');
+            emptyE.style.color = 'var(--text-muted)';
+            emptyE.style.fontSize = '0.85rem';
+            emptyE.style.marginBottom = '10px';
+            emptyE.textContent = 'No exams scheduled.';
+            manageItemsList.appendChild(emptyE);
+        } else {
+            trackerData.exams.forEach((ex, idx) => {
+                const row = document.createElement('div');
+                row.className = 'edit-block';
+                const dateVal = ex.date ? ex.date.substring(0, 16) : '';
 
-            row.innerHTML = `
-                <div style="margin-bottom: 6px;">
-                    <input type="text" id="editExamName_${idx}" value="${ex.name}">
-                    <input type="datetime-local" id="editExamDate_${idx}" value="${dateVal}">
-                </div>
-                <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                    <button id="saveExamBtn_${idx}">Save</button>
-                    <button id="delExamBtn_${idx}" class="btn-outline">Delete</button>
-                </div>
-            `;
-            manageItemsList.appendChild(row);
+                row.innerHTML = `
+                    <div style="margin-bottom: 6px;">
+                        <input type="text" id="editExamName_${idx}" value="${ex.name}">
+                        <input type="datetime-local" id="editExamDate_${idx}" value="${dateVal}">
+                    </div>
+                    <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                        <button id="saveExamBtn_${idx}">Save</button>
+                        <button id="delExamBtn_${idx}" class="btn-outline">Delete</button>
+                    </div>
+                `;
+                manageItemsList.appendChild(row);
 
-            setTimeout(() => {
-                const saveBtn = document.getElementById(`saveExamBtn_${idx}`);
-                const delBtn = document.getElementById(`delExamBtn_${idx}`);
+                setTimeout(() => {
+                    const saveBtn = document.getElementById(`saveExamBtn_${idx}`);
+                    const delBtn = document.getElementById(`delExamBtn_${idx}`);
 
-                if (saveBtn) {
-                    saveBtn.onclick = async () => {
-                        const newName = document.getElementById(`editExamName_${idx}`).value.trim();
-                        const newDate = document.getElementById(`editExamDate_${idx}`).value;
-                        if (!newName || !newDate) return alert("Fill in title and date.");
+                    if (saveBtn) {
+                        saveBtn.onclick = async () => {
+                            const newName = document.getElementById(`editExamName_${idx}`).value.trim();
+                            const newDate = document.getElementById(`editExamDate_${idx}`).value;
+                            if (!newName || !newDate) return alert("Fill in title and date.");
 
-                        trackerData.exams[idx].name = newName;
-                        trackerData.exams[idx].date = newDate;
-                        await saveData();
-                        alert("Exam updated!");
-                        renderManagerList();
-                    };
-                }
+                            trackerData.exams[idx].name = newName;
+                            trackerData.exams[idx].date = newDate;
+                            await saveData();
+                            alert("Exam updated!");
+                            renderManagerList();
+                        };
+                    }
 
-                if (delBtn) {
-                    delBtn.onclick = async () => {
-                        trackerData.exams.splice(idx, 1);
-                        await saveData();
-                        renderManagerList();
-                    };
-                }
-            }, 0);
-        });
+                    if (delBtn) {
+                        delBtn.onclick = async () => {
+                            trackerData.exams.splice(idx, 1);
+                            await saveData();
+                            renderManagerList();
+                        };
+                    }
+                }, 0);
+            });
+        }
     }
 
     if (openEditorBtn) openEditorBtn.onclick = (e) => { e.preventDefault(); renderManagerList(); editorModal.style.display = 'flex'; };
