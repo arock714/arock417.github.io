@@ -67,6 +67,14 @@
             color: var(--text-muted);
         }
 
+        .badge-streak {
+            color: var(--text);
+            font-weight: bold;
+            border: 1px solid var(--border-light);
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
         hr.divider {
             border: none;
             border-top: 1px solid var(--border);
@@ -153,6 +161,29 @@
             color: var(--text);
             font-variant-numeric: tabular-nums;
             margin-bottom: 10px;
+        }
+
+        .goal-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .goal-bar-bg {
+            background: var(--border);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .goal-bar-fill {
+            background: var(--text);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
         }
 
         .manual-box {
@@ -279,7 +310,11 @@
     <header>
         <h1>eric's study tracker</h1>
         <div class="sub-nav">
-            <div>welcome! | <span id="dbStatus" style="color: var(--text-muted);">status: initializing...</span></div>
+            <div>
+                welcome! | 
+                <span class="badge-streak" id="streakDisplay">🔥 0 day streak</span> | 
+                <span id="dbStatus" style="color: var(--text-muted);">status: initializing...</span>
+            </div>
             <div>
                 <a href="/">← portfolio</a> | 
                 <a href="#" id="openEditorBtn">manage subjects & exams</a>
@@ -303,6 +338,17 @@
                     <button id="pauseBtn" class="btn-outline" style="display: none;">Pause</button>
                     <button id="logBtn" style="display: none;">Log Session</button>
                     <button id="resetBtn" class="btn-outline">Reset</button>
+                </div>
+            </div>
+
+            <!-- Daily Goal Progress Panel -->
+            <div class="goal-panel">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold;">
+                    <span>daily goal</span>
+                    <span id="goalTextDisplay">0.0 / 3.0 hrs (0%)</span>
+                </div>
+                <div class="goal-bar-bg">
+                    <div class="goal-bar-fill" id="goalBarFill"></div>
                 </div>
             </div>
 
@@ -345,6 +391,14 @@
             <div class="modal-header">
                 <span>manage subjects & exams</span>
                 <span id="closeModalBtn" style="cursor: pointer;">✕</span>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <div style="font-weight: bold; margin-bottom: 6px;">Set Daily Goal (Hours)</div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="dailyGoalInput" placeholder="3.0" step="0.5" min="0.5" style="margin-bottom: 0;">
+                    <button id="saveGoalBtn" style="white-space: nowrap;">Save Goal</button>
+                </div>
             </div>
 
             <div style="margin-bottom: 16px;">

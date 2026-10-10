@@ -1,9 +1,37 @@
 // --- SUPABASE DATABASE CONFIGURATION ---
 const SUPABASE_URL = "https://xkwdguskmvschpmkkwxs.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE"; // <-- Paste your anon key here
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; // <-- Paste your anon key here
 
-// Default Fallback Data (Guarantees content is never blank)
+// Helper functions for dynamic rolling dates
+function getDateKey(offsetDays = 0) {
+    const d = new Date();
+    d.setDate(d.getDate() - offsetDays);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getDateDisplayLabel(offsetDays = 0) {
+    if (offsetDays === 0) return "Today";
+    const d = new Date();
+    d.setDate(d.getDate() - offsetDays);
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+// Generate starter daily logs for the past 14 days dynamically
+function generateDefaultDailyLogs() {
+    const logs = {};
+    const sampleHours = [2.0, 3.5, 1.0, 4.5, 2.5, 5.0, 3.0, 1.5, 4.0, 2.0, 3.0, 5.5, 2.0, 1.2];
+    for (let i = 13; i >= 0; i--) {
+        const key = getDateKey(i);
+        logs[key] = sampleHours[13 - i];
+    }
+    return logs;
+}
+
 const DEFAULT_DATA = {
+    dailyGoal: 3.0,
     projects: [
         { id: "1", name: "Flight Dynamics & Controls", totalHours: 24.5 },
         { id: "2", name: "Orbital Mechanics", totalHours: 18.0 },
@@ -15,13 +43,7 @@ const DEFAULT_DATA = {
         { name: "Orbital Mechanics Exam 1", date: "2026-11-12T09:30:00" },
         { name: "Structures & Materials Final", date: "2026-12-18T10:00:00" }
     ],
-    weeklyStudy: [
-        { day: "9/27", hours: 2.0 }, { day: "9/28", hours: 3.5 }, { day: "9/29", hours: 1.0 },
-        { day: "9/30", hours: 4.5 }, { day: "10/1", hours: 2.5 }, { day: "10/2", hours: 5.0 },
-        { day: "10/3", hours: 3.0 }, { day: "10/4", hours: 1.5 }, { day: "10/5", hours: 4.0 },
-        { day: "10/6", hours: 2.0 }, { day: "10/7", hours: 3.0 }, { day: "10/8", hours: 5.5 },
-        { day: "10/9", hours: 2.0 }, { day: "Today", hours: 1.2 }
-    ]
+    dailyLogs: generateDefaultDailyLogs()
 };
 
 let trackerData = JSON.parse(JSON.stringify(DEFAULT_DATA));
@@ -50,6 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const chartContainer = document.getElementById('chartContainer');
     const weeklyTotalDisplay = document.getElementById('weeklyTotalDisplay');
     const dbStatus = document.getElementById('dbStatus');
+    const streakDisplay = document.getElementById('streakDisplay');
+
+    // Daily Goal UI
+    const goalTextDisplay = document.getElementById('goalTextDisplay');
+    const goalBarFill = document.getElementById('goalBarFill');
+    const dailyGoalInput = document.getElementById('dailyGoalInput');
+    const saveGoalBtn = document.getElementById('saveGoalBtn');
 
     const manualHours = document.getElementById('manualHours');
     const manualMins = document.getElementById('manualMins');
@@ -69,19 +98,20 @@ document.addEventListener('DOMContentLoaded', () => {
         renderProjects();
         renderExams();
         renderChart();
+        renderGoalAndStreak();
     }
 
-    // Synchronous immediate render on page load
     renderAll();
 
     async function loadData() {
-        // 1. Try local storage
         try {
             const local = localStorage.getItem('study_tracker_data');
             if (local) {
                 const parsed = JSON.parse(local);
                 if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
                     trackerData = parsed;
+                    if (!trackerData.dailyLogs) trackerData.dailyLogs = generateDefaultDailyLogs();
+                    if (!trackerData.dailyGoal) trackerData.dailyGoal = 3.0;
                     renderAll();
                 }
             }
@@ -89,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("LocalStorage read error:", e);
         }
 
-        // 2. Try Supabase DB
         const client = getSupabaseClient();
         if (client) {
             if (dbStatus) dbStatus.textContent = "status: connecting to supabase...";
@@ -102,24 +131,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (error) {
                     console.error("Supabase fetch error:", error);
-                    if (dbStatus) dbStatus.textContent = `status: supabase error (${error.message || error.code})`;
+                    if (dbStatus) dbStatus.textContent = `status: error (${error.message || error.code})`;
                 } else if (data && data.data && Array.isArray(data.data.projects) && data.data.projects.length > 0) {
                     trackerData = data.data;
+                    if (!trackerData.dailyLogs) trackerData.dailyLogs = generateDefaultDailyLogs();
+                    if (!trackerData.dailyGoal) trackerData.dailyGoal = 3.0;
                     localStorage.setItem('study_tracker_data', JSON.stringify(trackerData));
                     renderAll();
-                    if (dbStatus) dbStatus.textContent = "status: connected to supabase";
+                    if (dbStatus) dbStatus.textContent = "status: connected";
                 } else {
-                    // Seed initial data if table row is empty
-                    if (dbStatus) dbStatus.textContent = "status: seeding initial data to supabase...";
+                    if (dbStatus) dbStatus.textContent = "status: seeding initial data...";
                     await saveData();
-                    if (dbStatus) dbStatus.textContent = "status: connected to supabase (initialized)";
+                    if (dbStatus) dbStatus.textContent = "status: connected";
                 }
             } catch (err) {
                 console.error("Supabase connection exception:", err);
                 if (dbStatus) dbStatus.textContent = "status: connection error";
             }
         } else {
-            if (dbStatus) dbStatus.textContent = "status: local storage mode (paste anon key in app.js)";
+            if (dbStatus) dbStatus.textContent = "status: local storage mode";
         }
     }
 
@@ -142,6 +172,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Supabase save exception:", err);
             }
         }
+    }
+
+    function addTimeLogged(hoursToAdd) {
+        const selectedProjId = projectSelect.value;
+        const proj = (trackerData.projects || []).find(p => p.id === selectedProjId);
+        if (!proj) return false;
+
+        proj.totalHours += hoursToAdd;
+
+        const todayKey = getDateKey(0);
+        if (!trackerData.dailyLogs) trackerData.dailyLogs = {};
+        trackerData.dailyLogs[todayKey] = (trackerData.dailyLogs[todayKey] || 0) + hoursToAdd;
+
+        return true;
     }
 
     function renderProjects() {
@@ -200,31 +244,78 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Dynamic 14-Day Rolling Chart Rendering
     function renderChart() {
         if (!chartContainer) return;
         chartContainer.innerHTML = '';
 
-        const weeklyList = trackerData.weeklyStudy || [];
-        const maxHours = Math.max(...weeklyList.map(d => d.hours), 6.0);
-        let totalWeeklyHours = 0;
+        const logs = trackerData.dailyLogs || {};
+        const daysData = [];
+        let total14DayHours = 0;
 
-        weeklyList.forEach(entry => {
-            totalWeeklyHours += entry.hours;
+        for (let i = 13; i >= 0; i--) {
+            const key = getDateKey(i);
+            const label = getDateDisplayLabel(i);
+            const hrs = logs[key] || 0;
+            daysData.push({ key, label, hours: hrs, isToday: i === 0 });
+            total14DayHours += hrs;
+        }
+
+        const maxHours = Math.max(...daysData.map(d => d.hours), 6.0);
+
+        daysData.forEach(entry => {
             const heightPercent = (entry.hours / maxHours) * 100;
-            const isToday = entry.day === "Today";
 
             const col = document.createElement('div');
             col.className = 'chart-col';
             col.innerHTML = `<div class="chart-val">${entry.hours > 0 ? entry.hours.toFixed(1) : ''}</div>` +
                 `<div class="chart-bar-wrap">` +
-                `<div class="chart-bar ${isToday ? 'today' : ''}" style="height: ${heightPercent}%;"></div>` +
+                `<div class="chart-bar ${entry.isToday ? 'today' : ''}" style="height: ${heightPercent}%;"></div>` +
                 `</div>` +
-                `<div class="chart-label">${entry.day}</div>`;
+                `<div class="chart-label">${entry.label}</div>`;
             chartContainer.appendChild(col);
         });
 
         if (weeklyTotalDisplay) {
-            weeklyTotalDisplay.textContent = `Total: ${totalWeeklyHours.toFixed(1)} hrs`;
+            weeklyTotalDisplay.textContent = `Total: ${total14DayHours.toFixed(1)} hrs`;
+        }
+    }
+
+    // Streak & Goal Progress Rendering
+    function renderGoalAndStreak() {
+        const logs = trackerData.dailyLogs || {};
+        const todayKey = getDateKey(0);
+        const todayHours = logs[todayKey] || 0;
+        const goal = trackerData.dailyGoal || 3.0;
+
+        // Daily Goal Progress
+        const percent = Math.min(100, Math.round((todayHours / goal) * 100));
+        if (goalTextDisplay) {
+            goalTextDisplay.textContent = `${todayHours.toFixed(1)} / ${goal.toFixed(1)} hrs (${percent}%)`;
+        }
+        if (goalBarFill) {
+            goalBarFill.style.width = `${percent}%`;
+        }
+        if (dailyGoalInput) {
+            dailyGoalInput.value = goal;
+        }
+
+        // Consecutive Streak Counter
+        let streak = 0;
+        let dayOffset = (todayHours > 0) ? 0 : 1; // If 0 today, check if yesterday kept streak alive
+
+        while (true) {
+            const k = getDateKey(dayOffset);
+            if ((logs[k] || 0) > 0) {
+                streak++;
+                dayOffset++;
+            } else {
+                break;
+            }
+        }
+
+        if (streakDisplay) {
+            streakDisplay.textContent = `🔥 ${streak} day streak`;
         }
     }
 
@@ -319,6 +410,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (openEditorBtn) openEditorBtn.onclick = (e) => { e.preventDefault(); renderManagerList(); editorModal.style.display = 'flex'; };
     if (closeModalBtn) closeModalBtn.onclick = () => { editorModal.style.display = 'none'; };
 
+    if (saveGoalBtn) {
+        saveGoalBtn.onclick = async () => {
+            const val = parseFloat(dailyGoalInput.value);
+            if (isNaN(val) || val <= 0) return alert("Please enter a valid target hour.");
+            trackerData.dailyGoal = val;
+            await saveData();
+            alert("Daily goal updated!");
+        };
+    }
+
     if (addProjBtn) {
         addProjBtn.onclick = async () => {
             const name = document.getElementById('newProjName').value.trim();
@@ -355,14 +456,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (hrs === 0 && mins === 0) return alert("Enter hours or minutes.");
 
             const totalAdded = hrs + (mins / 60);
-            const selectedProjId = projectSelect.value;
-            const proj = (trackerData.projects || []).find(p => p.id === selectedProjId);
-            if (!proj) return alert("Select a subject first.");
-
-            proj.totalHours += totalAdded;
-
-            const todayEntry = (trackerData.weeklyStudy || []).find(d => d.day === "Today");
-            if (todayEntry) todayEntry.hours += totalAdded;
+            const success = addTimeLogged(totalAdded);
+            if (!success) return alert("Select a subject first.");
 
             manualHours.value = '';
             manualMins.value = '';
@@ -399,12 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(timerInterval);
             const hoursAdded = elapsedSeconds / 3600;
 
-            const selectedProjId = projectSelect.value;
-            const proj = (trackerData.projects || []).find(p => p.id === selectedProjId);
-            if (proj) proj.totalHours += hoursAdded;
-
-            const todayEntry = (trackerData.weeklyStudy || []).find(d => d.day === "Today");
-            if (todayEntry) todayEntry.hours += hoursAdded;
+            addTimeLogged(hoursAdded);
 
             elapsedSeconds = 0;
             if (timerDisplay) timerDisplay.textContent = '00:00:00';
