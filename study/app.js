@@ -1,13 +1,9 @@
 // --- SUPABASE DATABASE CONFIGURATION ---
 const SUPABASE_URL = "https://xkwdguskmvschpmkkwxs.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE"; // <-- Paste your anon key here if using Supabase
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE"; // <-- Paste your anon key here
 
-const supabase = (window.supabase && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes("YOUR_")) 
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
-    : null;
-
-// Initial Default Starter Data (Ensures the page always populates immediately)
-let trackerData = {
+// Default Fallback Data (Guarantees content is never blank)
+const DEFAULT_DATA = {
     projects: [
         { id: "1", name: "Flight Dynamics & Controls", totalHours: 24.5 },
         { id: "2", name: "Orbital Mechanics", totalHours: 18.0 },
@@ -28,6 +24,20 @@ let trackerData = {
     ]
 };
 
+let trackerData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+
+function getSupabaseClient() {
+    if (typeof window.supabase === 'undefined') return null;
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+    if (SUPABASE_URL.includes("YOUR_") || SUPABASE_ANON_KEY.includes("YOUR_")) return null;
+    try {
+        return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (e) {
+        console.error("Supabase client init error:", e);
+        return null;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const projectSelect = document.getElementById('projectSelect');
     const projectList = document.getElementById('projectList');
@@ -39,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('resetBtn');
     const chartContainer = document.getElementById('chartContainer');
     const weeklyTotalDisplay = document.getElementById('weeklyTotalDisplay');
+    const dbStatus = document.getElementById('dbStatus');
 
     const manualHours = document.getElementById('manualHours');
     const manualMins = document.getElementById('manualMins');
@@ -54,56 +65,81 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerInterval = null;
     let elapsedSeconds = 0;
 
-    // Synchronous Immediate Render First
-    renderProjects();
-    renderExams();
-    renderChart();
-
-    async function loadData() {
-        // Check localStorage fallback
-        const local = localStorage.getItem('study_tracker_data');
-        if (local) {
-            try {
-                const parsed = JSON.parse(local);
-                if (parsed && parsed.projects) trackerData = parsed;
-            } catch (e) {}
-        }
-
-        // Try loading from Supabase if configured
-        if (supabase) {
-            try {
-                const { data, error } = await supabase
-                    .from('study_dashboard')
-                    .select('data')
-                    .eq('id', 'main')
-                    .single();
-
-                if (!error && data && data.data) {
-                    trackerData = data.data;
-                }
-            } catch (err) {
-                console.warn("Supabase load fallback:", err);
-            }
-        }
-
+    function renderAll() {
         renderProjects();
         renderExams();
         renderChart();
     }
 
+    // Synchronous immediate render on page load
+    renderAll();
+
+    async function loadData() {
+        // 1. Try local storage
+        try {
+            const local = localStorage.getItem('study_tracker_data');
+            if (local) {
+                const parsed = JSON.parse(local);
+                if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+                    trackerData = parsed;
+                    renderAll();
+                }
+            }
+        } catch (e) {
+            console.warn("LocalStorage read error:", e);
+        }
+
+        // 2. Try Supabase DB
+        const client = getSupabaseClient();
+        if (client) {
+            if (dbStatus) dbStatus.textContent = "status: connecting to supabase...";
+            try {
+                const { data, error } = await client
+                    .from('study_dashboard')
+                    .select('data')
+                    .eq('id', 'main')
+                    .maybeSingle();
+
+                if (error) {
+                    console.error("Supabase fetch error:", error);
+                    if (dbStatus) dbStatus.textContent = `status: supabase error (${error.message || error.code})`;
+                } else if (data && data.data && Array.isArray(data.data.projects) && data.data.projects.length > 0) {
+                    trackerData = data.data;
+                    localStorage.setItem('study_tracker_data', JSON.stringify(trackerData));
+                    renderAll();
+                    if (dbStatus) dbStatus.textContent = "status: connected to supabase";
+                } else {
+                    // Seed initial data if table row is empty
+                    if (dbStatus) dbStatus.textContent = "status: seeding initial data to supabase...";
+                    await saveData();
+                    if (dbStatus) dbStatus.textContent = "status: connected to supabase (initialized)";
+                }
+            } catch (err) {
+                console.error("Supabase connection exception:", err);
+                if (dbStatus) dbStatus.textContent = "status: connection error";
+            }
+        } else {
+            if (dbStatus) dbStatus.textContent = "status: local storage mode (paste anon key in app.js)";
+        }
+    }
+
     async function saveData() {
         localStorage.setItem('study_tracker_data', JSON.stringify(trackerData));
-        renderProjects();
-        renderExams();
-        renderChart();
+        renderAll();
 
-        if (supabase) {
+        const client = getSupabaseClient();
+        if (client) {
             try {
-                await supabase
+                const { error } = await client
                     .from('study_dashboard')
                     .upsert({ id: 'main', data: trackerData });
+
+                if (error) {
+                    console.error("Supabase save error:", error);
+                    if (dbStatus) dbStatus.textContent = `status: save failed (${error.message})`;
+                }
             } catch (err) {
-                console.error("Supabase save error:", err);
+                console.error("Supabase save exception:", err);
             }
         }
     }
@@ -124,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const li = document.createElement('li');
             li.innerHTML = `<span class="item-name">${proj.name}</span>` +
-                `<span class="item-val">${Number(proj.totalHours).toFixed(1)} hrs</span>`;
+                `<span class="item-val">${Number(proj.totalHours || 0).toFixed(1)} hrs</span>`;
             projectList.appendChild(li);
         });
     }
@@ -214,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
             row.className = 'edit-block';
             row.style.display = 'flex';
             row.style.alignItems = 'center';
-            row.innerHTML = `<span style="flex: 1; font-weight: bold;">${proj.name} (${proj.totalHours.toFixed(1)} hrs)</span>`;
+            row.innerHTML = `<span style="flex: 1; font-weight: bold;">${proj.name} (${Number(proj.totalHours || 0).toFixed(1)} hrs)</span>`;
 
             const delBtn = document.createElement('button');
             delBtn.className = 'btn-outline';

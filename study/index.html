@@ -10,18 +10,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
-    <!-- Supabase JS Client CDN -->
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
             --bg: #000000;
-            --panel-bg: #111111;
-            --input-bg: #0a0a0a;
+            --panel-bg: #0a0a0a;
+            --input-bg: #000000;
             --text: #ffffff;
             --text-muted: #888888;
-            --border: #333333;
-            --border-light: #555555;
+            --border: #222222;
+            --border-light: #444444;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -49,11 +49,13 @@
         }
 
         .sub-nav {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: var(--text-muted);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .sub-nav a {
@@ -95,7 +97,7 @@
             font-size: 0.95rem;
             padding: 6px 10px;
             background: var(--input-bg);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-light);
             color: var(--text);
             border-radius: 4px;
             width: 100%;
@@ -104,12 +106,12 @@
         }
 
         select:focus, input:focus {
-            border-color: var(--border-light);
+            border-color: var(--text);
         }
 
         button {
             font-family: inherit;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: bold;
             padding: 6px 14px;
             border-radius: 4px;
@@ -121,19 +123,19 @@
         }
 
         button:hover {
-            background: #e6e6e6;
-            border-color: #e6e6e6;
+            background: #cccccc;
+            border-color: #cccccc;
         }
 
         button.btn-outline {
             background: transparent;
             color: var(--text);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-light);
         }
 
         button.btn-outline:hover {
             border-color: var(--text);
-            background: var(--panel-bg);
+            background: #111111;
         }
 
         .timer-box {
@@ -277,7 +279,7 @@
     <header>
         <h1>eric's study tracker</h1>
         <div class="sub-nav">
-            <div>welcome!</div>
+            <div>welcome! | <span id="dbStatus" style="color: var(--text-muted);">status: initializing...</span></div>
             <div>
                 <a href="/">← portfolio</a> | 
                 <a href="#" id="openEditorBtn">manage subjects & exams</a>
