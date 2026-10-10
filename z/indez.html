@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>study | zoya</title>
+
+    <!-- Carlito / Calibri font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg: #000000;
+            --panel-bg: #0a0a0a;
+            --input-bg: #000000;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --border: #222222;
+            --border-light: #444444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Carlito', Calibri, "Segoe UI", sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 32px 20px;
+            line-height: 1.5;
+        }
+
+        header {
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .sub-nav {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .sub-nav a {
+            color: var(--text);
+            text-decoration: underline;
+        }
+
+        .sub-nav a:hover {
+            color: var(--text-muted);
+        }
+
+        .badge-streak {
+            color: var(--text);
+            font-weight: bold;
+            border: 1px solid var(--border-light);
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        hr.divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 16px 0 24px 0;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 650px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        .full-width { grid-column: 1 / -1; }
+
+        select, input[type="text"], input[type="number"], input[type="datetime-local"] {
+            font-family: inherit;
+            font-size: 0.95rem;
+            padding: 6px 10px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-light);
+            color: var(--text);
+            border-radius: 4px;
+            width: 100%;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--text);
+        }
+
+        button {
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 4px;
+            border: 1px solid var(--text);
+            background: var(--text);
+            color: var(--bg);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        button:hover {
+            background: #cccccc;
+            border-color: #cccccc;
+        }
+
+        button.btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border-light);
+        }
+
+        button.btn-outline:hover {
+            border-color: var(--text);
+            background: #111111;
+        }
+
+        .timer-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .timer-display {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 10px;
+        }
+
+        .goal-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .goal-bar-bg {
+            background: var(--border);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .goal-bar-fill {
+            background: var(--text);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .manual-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .data-list {
+            list-style: none;
+            border-top: 1px solid var(--border);
+        }
+
+        .data-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .item-name { font-weight: bold; }
+        .item-val { color: var(--text-muted); font-weight: bold; }
+
+        /* Minimal 14-Day Bar Chart */
+        .chart-box {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 140px;
+            padding-top: 20px;
+            gap: 4px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 6px;
+        }
+
+        .chart-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .chart-bar-wrap {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .chart-bar {
+            width: 100%;
+            max-width: 20px;
+            background: var(--border-light);
+            border-radius: 2px 2px 0 0;
+            min-height: 2px;
+        }
+
+        .chart-bar.today {
+            background: var(--text);
+        }
+
+        .chart-val {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .chart-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            white-space: nowrap;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background: var(--bg);
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(255,255,255,0.05);
+        }
+
+        .modal-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .edit-block {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>zoya's study tracker</h1>
+        <div class="sub-nav">
+            <div>
+                welcome! | 
+                <span class="badge-streak" id="streakDisplay">🔥 0 day streak</span> | 
+                <span id="dbStatus" style="color: var(--text-muted);">status: initializing...</span>
+            </div>
+            <div>
+                <a href="/">← home</a> | 
+                <a href="#" id="openEditorBtn">manage subjects & exams</a>
+            </div>
+        </div>
+    </header>
+
+    <hr class="divider">
+
+    <div class="dashboard-grid">
+
+        <!-- Active Session -->
+        <div>
+            <div class="section-title">active session</div>
+            <select id="projectSelect"></select>
+
+            <div class="timer-box">
+                <div class="timer-display" id="timerDisplay">00:00:00</div>
+                <div style="display: flex; justify-content: center; gap: 8px;">
+                    <button id="startBtn">Start</button>
+                    <button id="pauseBtn" class="btn-outline" style="display: none;">Pause</button>
+                    <button id="logBtn" style="display: none;">Log Session</button>
+                    <button id="resetBtn" class="btn-outline">Reset</button>
+                </div>
+            </div>
+
+            <!-- Daily Goal Progress Panel -->
+            <div class="goal-panel">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold;">
+                    <span>daily goal</span>
+                    <span id="goalTextDisplay">0.0 / 3.0 hrs (0%)</span>
+                </div>
+                <div class="goal-bar-bg">
+                    <div class="goal-bar-fill" id="goalBarFill"></div>
+                </div>
+            </div>
+
+            <div class="manual-box">
+                <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px;">manual time entry</div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="number" id="manualHours" placeholder="0" min="0" style="width: 60px; margin-bottom: 0;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">hrs</span>
+                    <input type="number" id="manualMins" placeholder="0" min="0" max="59" style="width: 60px; margin-bottom: 0;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">mins</span>
+                    <button id="manualLogBtn" style="margin-left: auto;">Add</button>
+                </div>
+            </div>
+
+            <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: var(--text-muted);">TOTAL LOGGED TIME</div>
+            <ul class="data-list" id="projectList"></ul>
+        </div>
+
+        <!-- Scheduled Exams -->
+        <div>
+            <div class="section-title">upcoming exams</div>
+            <ul class="data-list" id="examList"></ul>
+        </div>
+
+        <!-- 14-Day Activity Chart -->
+        <div class="full-width">
+            <hr class="divider">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="section-title" style="margin-bottom: 0;">study activity (past 14 days)</div>
+                <div id="weeklyTotalDisplay" style="color: var(--text); font-weight: bold;">Total: 0.0 hrs</div>
+            </div>
+            <div class="chart-box" id="chartContainer"></div>
+        </div>
+
+    </div>
+
+    <!-- Modal Manager -->
+    <div class="modal-overlay" id="editorModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span>manage subjects & exams</span>
+                <span id="closeModalBtn" style="cursor: pointer;">✕</span>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <div style="font-weight: bold; margin-bottom: 6px;">Set Daily Goal (Hours)</div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="dailyGoalInput" placeholder="3.0" step="0.5" min="0.5" style="margin-bottom: 0;">
+                    <button id="saveGoalBtn" style="white-space: nowrap;">Save Goal</button>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <div style="font-weight: bold; margin-bottom: 6px;">Add Subject</div>
+                <input type="text" id="newProjName" placeholder="Subject Title">
+                <input type="number" id="newProjHours" placeholder="Initial Hours Logged" step="0.5">
+                <button id="addProjBtn">+ Add Subject</button>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <div style="font-weight: bold; margin-bottom: 6px;">Add Exam</div>
+                <input type="text" id="newExamName" placeholder="Exam Title">
+                <input type="datetime-local" id="newExamDate">
+                <button id="addExamBtn">+ Add Exam</button>
+            </div>
+
+            <div>
+                <div style="font-weight: bold; margin-bottom: 6px;">Edit Existing Items</div>
+                <div id="manageItemsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js" defer></script>
+</body>
+</html>
