@@ -1,5 +1,5 @@
-const REPO_OWNER = "arock417";
-const REPO_NAME = "arock417.github.io"; // <-- Double check this matches your repo name exactly!
+const REPO_OWNER = "arock714";
+const REPO_NAME = "arock417.github.io";
 const FILE_PATH = "study/data.json";
 
 let trackerData = {
@@ -13,12 +13,19 @@ let trackerData = {
         { name: "Orbital Mechanics Exam 1", date: "2026-11-12T09:30:00" }
     ],
     weeklyStudy: [
-        { day: "Sat", hours: 2.5 },
-        { day: "Sun", hours: 4.0 },
-        { day: "Mon", hours: 1.5 },
-        { day: "Tue", hours: 3.5 },
-        { day: "Wed", hours: 2.0 },
-        { day: "Thu", hours: 5.0 },
+        { day: "9/27", hours: 2.0 },
+        { day: "9/28", hours: 3.5 },
+        { day: "9/29", hours: 1.0 },
+        { day: "9/30", hours: 4.5 },
+        { day: "10/1", hours: 2.5 },
+        { day: "10/2", hours: 5.0 },
+        { day: "10/3", hours: 3.0 },
+        { day: "10/4", hours: 1.5 },
+        { day: "10/5", hours: 4.0 },
+        { day: "10/6", hours: 2.0 },
+        { day: "10/7", hours: 3.0 },
+        { day: "10/8", hours: 5.5 },
+        { day: "10/9", hours: 2.0 },
         { day: "Today", hours: 1.2 }
     ]
 };
@@ -103,17 +110,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileSha = fileMeta.sha;
             } else if (getRes.status !== 404) {
                 const errData = await getRes.json().catch(() => ({}));
-                throw new Error(`GitHub API HTTP ${getRes.status}: ${errData.message || 'Check repository name or token settings.'}`);
+                throw new Error(`GitHub API HTTP ${getRes.status}: ${errData.message || 'Check repository name or token permissions.'}`);
             }
 
-            // Prepare payload
             const updatedContentBase64 = encodeBase64Utf8(JSON.stringify(trackerData, null, 2));
             const requestBody = {
                 message: "Log study session hours via website",
                 content: updatedContentBase64
             };
 
-            // Only attach SHA if file already exists in repo
             if (fileSha) {
                 requestBody.sha = fileSha;
             }
@@ -155,9 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
             projectSelect.appendChild(opt);
 
             const li = document.createElement('li');
-            li.className = 'list-item';
             li.innerHTML = `<span class="item-title">${proj.name}</span>` +
-                `<span class="item-sub" style="font-weight: bold; color: var(--accent-cyan);">${Number(proj.totalHours).toFixed(1)} hrs</span>`;
+                `<span class="item-hrs">${Number(proj.totalHours).toFixed(1)} hrs</span>`;
             projectList.appendChild(li);
         });
     }
@@ -188,12 +192,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const li = document.createElement('li');
-            li.className = 'list-item';
             li.innerHTML = `<div>` +
                 `<div class="item-title">${exam.name}</div>` +
-                `<div class="item-sub">${dateFormatted}</div>` +
+                `<div style="font-size:10px; color:#94a3b8;">${dateFormatted}</div>` +
                 `</div>` +
-                `<span class="countdown-badge">${countdownText}</span>`;
+                `<span class="badge-2000s">${countdownText}</span>`;
             examList.appendChild(li);
         });
     }
