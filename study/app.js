@@ -1,5 +1,5 @@
 const REPO_OWNER = "arock417";
-const REPO_NAME = "arock417.github.io"; // Change if your repository name is different
+const REPO_NAME = "arock417.github.io"; // <-- Double check this matches your repo name exactly!
 const FILE_PATH = "study/data.json";
 
 let trackerData = {
@@ -96,13 +96,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 } 
             });
 
-            if (!getRes.ok) {
+            let fileSha = null;
+
+            if (getRes.ok) {
+                const fileMeta = await getRes.json();
+                fileSha = fileMeta.sha;
+            } else if (getRes.status !== 404) {
                 const errData = await getRes.json().catch(() => ({}));
-                throw new Error(`GitHub API HTTP ${getRes.status}: ${errData.message || 'Check username, repo name, or token.'}`);
+                throw new Error(`GitHub API HTTP ${getRes.status}: ${errData.message || 'Check repository name or token settings.'}`);
             }
 
-            const fileMeta = await getRes.json();
+            // Prepare payload
             const updatedContentBase64 = encodeBase64Utf8(JSON.stringify(trackerData, null, 2));
+            const requestBody = {
+                message: "Log study session hours via website",
+                content: updatedContentBase64
+            };
+
+            // Only attach SHA if file already exists in repo
+            if (fileSha) {
+                requestBody.sha = fileSha;
+            }
 
             const putRes = await fetch(getUrl, {
                 method: 'PUT',
@@ -111,18 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'Accept': 'application/vnd.github.v3+json'
                 },
-                body: JSON.stringify({
-                    message: "Log study session hours via website",
-                    content: updatedContentBase64,
-                    sha: fileMeta.sha
-                })
+                body: JSON.stringify(requestBody)
             });
 
             if (putRes.ok) {
-                console.log("Logged hours successfully committed to GitHub!");
+                alert("Logged hours successfully committed to GitHub!");
             } else {
                 const err = await putRes.json();
-                alert(`GitHub Sync Failed: ${err.message}`);
+                alert(`GitHub Sync Failed (${putRes.status}): ${err.message}`);
             }
         } catch (err) {
             console.error("Error committing to GitHub:", err);
