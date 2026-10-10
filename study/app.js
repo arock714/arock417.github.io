@@ -1,33 +1,13 @@
-const REPO_OWNER = "arock714";
-const REPO_NAME = "arock417.github.io";
-const FILE_PATH = "study/data.json";
+// --- PASTE YOUR SUPABASE CREDENTIALS HERE ---
+const SUPABASE_URL = "https://xkwdguskmvschpmkkwxs.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HEciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE";
+
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 let trackerData = {
-    projects: [
-        { id: "1", name: "Flight Dynamics & Controls", totalHours: 24.5 },
-        { id: "2", name: "Orbital Mechanics", totalHours: 18.0 },
-        { id: "3", name: "NASA USLI Payload Development", totalHours: 42.0 }
-    ],
-    exams: [
-        { name: "Flight Dynamics Midterm", date: "2026-10-28T14:00:00" },
-        { name: "Orbital Mechanics Exam 1", date: "2026-11-12T09:30:00" }
-    ],
-    weeklyStudy: [
-        { day: "9/27", hours: 2.0 },
-        { day: "9/28", hours: 3.5 },
-        { day: "9/29", hours: 1.0 },
-        { day: "9/30", hours: 4.5 },
-        { day: "10/1", hours: 2.5 },
-        { day: "10/2", hours: 5.0 },
-        { day: "10/3", hours: 3.0 },
-        { day: "10/4", hours: 1.5 },
-        { day: "10/5", hours: 4.0 },
-        { day: "10/6", hours: 2.0 },
-        { day: "10/7", hours: 3.0 },
-        { day: "10/8", hours: 5.5 },
-        { day: "10/9", hours: 2.0 },
-        { day: "Today", hours: 1.2 }
-    ]
+    projects: [],
+    exams: [],
+    weeklyStudy: []
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -41,36 +21,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('resetBtn');
     const chartContainer = document.getElementById('chartContainer');
     const weeklyTotalDisplay = document.getElementById('weeklyTotalDisplay');
-    const ghTokenInput = document.getElementById('ghTokenInput');
-    const saveTokenBtn = document.getElementById('saveTokenBtn');
+    const syncStatus = document.getElementById('syncStatus');
+
+    const openEditorBtn = document.getElementById('openEditorBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const editorModal = document.getElementById('editorModal');
+    const addProjBtn = document.getElementById('addProjBtn');
+    const addExamBtn = document.getElementById('addExamBtn');
+    const manageItemsList = document.getElementById('manageItemsList');
 
     let timerInterval = null;
     let elapsedSeconds = 0;
 
-    if (ghTokenInput) {
-        ghTokenInput.value = localStorage.getItem('gh_pat_token') || '';
-    }
-
-    if (saveTokenBtn) {
-        saveTokenBtn.addEventListener('click', () => {
-            localStorage.setItem('gh_pat_token', ghTokenInput.value.trim());
-            alert('GitHub Access Token saved in browser storage!');
-        });
-    }
-
-    async function loadData() {
+    // Load data from Supabase DB
+    async function loadFromDatabase() {
+        if (!supabase) return;
         try {
-            const res = await fetch('./data.json?cache=' + Date.now());
-            if (res.ok) {
-                const remoteData = await res.json();
-                if (remoteData) {
-                    if (Array.isArray(remoteData.projects)) trackerData.projects = remoteData.projects;
-                    if (Array.isArray(remoteData.exams)) trackerData.exams = remoteData.exams;
-                    if (Array.isArray(remoteData.weeklyStudy)) trackerData.weeklyStudy = remoteData.weeklyStudy;
-                }
+            const { data, error } = await supabase
+                .from('study_dashboard')
+                .select('data')
+                .eq('id', 'main')
+                .single();
+
+            if (error) throw error;
+            if (data && data.data) {
+                trackerData = data.data;
+                if (syncStatus) syncStatus.textContent = "⚡ Supabase Database: Connected";
             }
-        } catch (e) {
-            console.warn("Could not load data.json, using local fallback data.", e);
+        } catch (err) {
+            console.warn("Could not fetch from Supabase, falling back to local storage.", err);
+            if (syncStatus) syncStatus.textContent = "⚠️ Offline / Local Storage Mode";
+            const local = localStorage.getItem('study_db_fallback');
+            if (local) trackerData = JSON.parse(local);
         } finally {
             renderProjects();
             renderExams();
@@ -78,70 +60,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function encodeBase64Utf8(str) {
-        const bytes = new TextEncoder().encode(str);
-        let binary = '';
-        bytes.forEach(b => {
-            binary += String.fromCharCode(b);
-        });
-        return btoa(binary);
-    }
+    // Save data back to Supabase DB
+    async function saveToDatabase() {
+        localStorage.setItem('study_db_fallback', JSON.stringify(trackerData));
+        renderProjects();
+        renderExams();
+        renderChart();
 
-    async function commitToGitHub() {
-        const token = localStorage.getItem('gh_pat_token') || (ghTokenInput ? ghTokenInput.value.trim() : '');
-        if (!token) {
-            alert("Time updated locally! Enter your GitHub Token at the top right to save changes permanently to your repo.");
-            return;
-        }
+        if (!supabase) return;
 
         try {
-            const getUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
-            const getRes = await fetch(getUrl, { 
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                } 
-            });
+            const { error } = await supabase
+                .from('study_dashboard')
+                .upsert({ id: 'main', data: trackerData });
 
-            let fileSha = null;
-
-            if (getRes.ok) {
-                const fileMeta = await getRes.json();
-                fileSha = fileMeta.sha;
-            } else if (getRes.status !== 404) {
-                const errData = await getRes.json().catch(() => ({}));
-                throw new Error(`GitHub API HTTP ${getRes.status}: ${errData.message || 'Check repository name or token permissions.'}`);
-            }
-
-            const updatedContentBase64 = encodeBase64Utf8(JSON.stringify(trackerData, null, 2));
-            const requestBody = {
-                message: "Log study session hours via website",
-                content: updatedContentBase64
-            };
-
-            if (fileSha) {
-                requestBody.sha = fileSha;
-            }
-
-            const putRes = await fetch(getUrl, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/vnd.github.v3+json'
-                },
-                body: JSON.stringify(requestBody)
-            });
-
-            if (putRes.ok) {
-                alert("Logged hours successfully committed to GitHub!");
-            } else {
-                const err = await putRes.json();
-                alert(`GitHub Sync Failed (${putRes.status}): ${err.message}`);
-            }
+            if (error) throw error;
+            console.log("Successfully saved to Supabase!");
         } catch (err) {
-            console.error("Error committing to GitHub:", err);
-            alert(`Could not sync to GitHub: ${err.message}`);
+            console.error("Error saving to Supabase DB:", err);
+            alert("Database write error: " + err.message);
         }
     }
 
@@ -236,6 +173,93 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${h}:${m}:${s}`;
     }
 
+    function renderManagerList() {
+        if (!manageItemsList) return;
+        manageItemsList.innerHTML = '';
+
+        const pTitle = document.createElement('div');
+        pTitle.style.fontWeight = 'bold';
+        pTitle.style.margin = '6px 0';
+        pTitle.textContent = "Subjects:";
+        manageItemsList.appendChild(pTitle);
+
+        (trackerData.projects || []).forEach((proj, idx) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.marginBottom = '4px';
+            row.innerHTML = `<span style="flex: 1;">${proj.name} (${proj.totalHours.toFixed(1)} hrs)</span>`;
+            
+            const delBtn = document.createElement('button');
+            delBtn.className = 'btn-red';
+            delBtn.textContent = 'Delete';
+            delBtn.onclick = async () => {
+                trackerData.projects.splice(idx, 1);
+                await saveToDatabase();
+                renderManagerList();
+            };
+            row.appendChild(delBtn);
+            manageItemsList.appendChild(row);
+        });
+
+        const eTitle = document.createElement('div');
+        eTitle.style.fontWeight = 'bold';
+        eTitle.style.margin = '10px 0 6px 0';
+        eTitle.textContent = "Exams:";
+        manageItemsList.appendChild(eTitle);
+
+        (trackerData.exams || []).forEach((ex, idx) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.marginBottom = '4px';
+            row.innerHTML = `<span style="flex: 1;">${ex.name}</span>`;
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'btn-red';
+            delBtn.textContent = 'Delete';
+            delBtn.onclick = async () => {
+                trackerData.exams.splice(idx, 1);
+                await saveToDatabase();
+                renderManagerList();
+            };
+            row.appendChild(delBtn);
+            manageItemsList.appendChild(row);
+        });
+    }
+
+    if (openEditorBtn) openEditorBtn.onclick = () => { renderManagerList(); editorModal.style.display = 'flex'; };
+    if (closeModalBtn) closeModalBtn.onclick = () => { editorModal.style.display = 'none'; };
+
+    if (addProjBtn) {
+        addProjBtn.onclick = async () => {
+            const name = document.getElementById('newProjName').value.trim();
+            const hrs = parseFloat(document.getElementById('newProjHours').value) || 0;
+            if (!name) return alert("Enter project name");
+
+            trackerData.projects.push({ id: Date.now().toString(), name: name, totalHours: hrs });
+            document.getElementById('newProjName').value = '';
+            document.getElementById('newProjHours').value = '';
+            await saveToDatabase();
+            renderManagerList();
+        };
+    }
+
+    if (addExamBtn) {
+        addExamBtn.onclick = async () => {
+            const name = document.getElementById('newExamName').value.trim();
+            const date = document.getElementById('newExamDate').value;
+            if (!name || !date) return alert("Enter exam name and date");
+
+            trackerData.exams.push({ name: name, date: date });
+            document.getElementById('newExamName').value = '';
+            document.getElementById('newExamDate').value = '';
+            await saveToDatabase();
+            renderManagerList();
+        };
+    }
+
+    // Timer Logic
     if (startBtn) {
         startBtn.addEventListener('click', () => {
             startBtn.style.display = 'none';
@@ -280,9 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pauseBtn) pauseBtn.style.display = 'none';
             if (logBtn) logBtn.style.display = 'none';
 
-            renderProjects();
-            renderChart();
-            await commitToGitHub();
+            await saveToDatabase();
         });
     }
 
@@ -297,6 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    loadData();
+    loadFromDatabase();
     setInterval(renderExams, 60000);
 });

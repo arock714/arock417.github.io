@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>study</title>
 
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -28,7 +31,6 @@
             overflow: hidden;
         }
 
-        /* --- 2000s Dark Web 2.0 Banner --- */
         header {
             background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
             padding: 10px 16px;
@@ -47,28 +49,13 @@
             text-shadow: 0 0 8px rgba(0, 210, 255, 0.4);
         }
 
-        .logo-group h1 span {
-            color: #00d2ff;
-            font-style: italic;
-        }
+        .logo-group h1 span { color: #00d2ff; font-style: italic; }
 
-        .portal-nav {
-            font-size: 10px;
-            color: #94a3b8;
-        }
+        .portal-nav { font-size: 10px; color: #94a3b8; }
+        .portal-nav a { color: #38bdf8; text-decoration: underline; font-weight: bold; }
+        .portal-nav a:hover { color: #7dd3fc; }
 
-        .portal-nav a {
-            color: #38bdf8;
-            text-decoration: underline;
-            font-weight: bold;
-        }
-
-        .portal-nav a:hover {
-            color: #7dd3fc;
-        }
-
-        /* --- Sub-header & Token Controls --- */
-        .search-bar-strip {
+        .control-strip {
             background: #182232;
             border-bottom: 1px solid #28374d;
             padding: 6px 12px;
@@ -77,31 +64,13 @@
             align-items: center;
         }
 
-        .search-bar-strip label {
-            font-weight: bold;
-            color: #38bdf8;
-        }
+        .btn-group { display: flex; gap: 6px; }
 
-        .token-group {
-            display: flex;
-            gap: 4px;
-        }
-
-        input[type="password"] {
-            font-size: 11px;
-            padding: 3px 6px;
-            border: 1px solid #334155;
-            background: #090d16;
-            color: #f1f5f9;
-            border-radius: 2px;
-        }
-
-        /* --- Glossy Dark Web 2.0 Buttons --- */
         button {
             font-family: Verdana, sans-serif;
             font-size: 11px;
             font-weight: bold;
-            padding: 3px 10px;
+            padding: 4px 10px;
             border-radius: 3px;
             cursor: pointer;
             border: 1px solid #0284c7;
@@ -110,32 +79,13 @@
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
         }
 
-        button:hover {
-            background: linear-gradient(180deg, #7dd3fc 0%, #0369a1 100%);
-        }
+        button:hover { background: linear-gradient(180deg, #7dd3fc 0%, #0369a1 100%); }
 
-        .btn-green {
-            border-color: #16a34a;
-            background: linear-gradient(180deg, #4ade80 0%, #15803d 100%);
-            color: #ffffff;
-            text-shadow: 0 1px 1px #052e16;
-        }
+        .btn-green { border-color: #16a34a; background: linear-gradient(180deg, #4ade80 0%, #15803d 100%); color: #ffffff; }
+        .btn-red { border-color: #dc2626; background: linear-gradient(180deg, #f87171 0%, #b91c1c 100%); color: #ffffff; }
+        .btn-purple { border-color: #9333ea; background: linear-gradient(180deg, #c084fc 0%, #7e22ce 100%); color: #ffffff; }
+        .btn-amber { border-color: #d97706; background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); color: #000000; }
 
-        .btn-red {
-            border-color: #dc2626;
-            background: linear-gradient(180deg, #f87171 0%, #b91c1c 100%);
-            color: #ffffff;
-            text-shadow: 0 1px 1px #450a0a;
-        }
-
-        .btn-purple {
-            border-color: #9333ea;
-            background: linear-gradient(180deg, #c084fc 0%, #7e22ce 100%);
-            color: #ffffff;
-            text-shadow: 0 1px 1px #3b0764;
-        }
-
-        /* --- Layout Grid & Portal Boxes --- */
         .portal-body {
             padding: 12px;
             display: grid;
@@ -166,18 +116,17 @@
             align-items: center;
         }
 
-        .box-content {
-            padding: 10px;
-        }
+        .box-content { padding: 10px; }
 
-        select {
+        select, input[type="text"], input[type="number"], input[type="datetime-local"] {
             width: 100%;
             font-size: 11px;
-            padding: 4px;
+            padding: 5px;
             border: 1px solid #334155;
             margin-bottom: 8px;
             background: #090d16;
             color: #f1f5f9;
+            border-radius: 3px;
         }
 
         .timer-panel {
@@ -203,11 +152,7 @@
             text-shadow: 0 0 6px rgba(0, 210, 255, 0.5);
         }
 
-        .timer-btn-row {
-            display: flex;
-            justify-content: center;
-            gap: 4px;
-        }
+        .timer-btn-row { display: flex; justify-content: center; gap: 4px; }
 
         .section-label {
             font-weight: bold;
@@ -219,11 +164,7 @@
             padding-bottom: 2px;
         }
 
-        /* --- Dark Mode Table Lists --- */
-        .data-list {
-            list-style: none;
-            border: 1px solid #28374d;
-        }
+        .data-list { list-style: none; border: 1px solid #28374d; }
 
         .data-list li {
             padding: 6px 8px;
@@ -249,7 +190,6 @@
             border-radius: 2px;
         }
 
-        /* --- Tight 14-Day Bar Chart Styling --- */
         .chart-box-container {
             display: flex;
             align-items: flex-end;
@@ -264,59 +204,55 @@
             padding-right: 4px;
         }
 
-        .chart-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-            justify-content: flex-end;
-        }
+        .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+        .chart-bar-wrap { width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+        .chart-bar { width: 100%; max-width: 22px; background: linear-gradient(180deg, #38bdf8 0%, #0369a1 100%); border: 1px solid #0284c7; border-radius: 2px 2px 0 0; min-height: 3px; }
+        .chart-bar.today { background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%); border-color: #d97706; }
+        .chart-val { font-size: 9px; color: #94a3b8; margin-bottom: 2px; font-weight: bold; }
+        .chart-label { font-size: 9px; color: #94a3b8; margin-top: 4px; white-space: nowrap; }
 
-        .chart-bar-wrap {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: flex-end;
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
             justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
 
-        .chart-bar {
-            width: 100%;
-            max-width: 22px;
-            background: linear-gradient(180deg, #38bdf8 0%, #0369a1 100%);
-            border: 1px solid #0284c7;
-            border-radius: 2px 2px 0 0;
-            min-height: 3px;
+        .modal-card {
+            background: #131c2b;
+            border: 2px solid #38bdf8;
+            border-radius: 6px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 16px;
+            box-shadow: 0 0 25px rgba(0, 210, 255, 0.3);
         }
 
-        .chart-bar.today {
-            background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%);
-            border-color: #d97706;
-        }
-
-        .chart-val {
-            font-size: 9px;
-            color: #94a3b8;
-            margin-bottom: 2px;
+        .modal-header {
+            font-size: 1.1rem;
             font-weight: bold;
+            color: #38bdf8;
+            border-bottom: 1px solid #28374d;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
         }
 
-        .chart-label {
-            font-size: 9px;
-            color: #94a3b8;
-            margin-top: 4px;
-            white-space: nowrap;
-        }
-
-        footer {
+        .form-section {
             background: #182232;
-            border-top: 1px solid #28374d;
-            text-align: center;
-            padding: 8px;
-            font-size: 10px;
-            color: #64748b;
+            border: 1px solid #28374d;
+            padding: 10px;
+            margin-bottom: 12px;
+            border-radius: 4px;
         }
+
+        footer { background: #182232; border-top: 1px solid #28374d; text-align: center; padding: 8px; font-size: 10px; color: #64748b; }
     </style>
 </head>
 <body>
@@ -331,17 +267,15 @@
             </div>
         </header>
 
-        <div class="search-bar-strip">
-            <div><strong>🔑 GitHub API Key Settings:</strong></div>
-            <div class="token-group">
-                <input type="password" id="ghTokenInput" placeholder="github_pat_...">
-                <button id="saveTokenBtn">Save Token</button>
+        <div class="control-strip">
+            <div id="syncStatus">⚡ Supabase Database: Connected</div>
+            <div class="btn-group">
+                <button id="openEditorBtn" class="btn-amber">✏️ Edit Subjects / Exams</button>
             </div>
         </div>
 
         <div class="portal-body">
 
-            <!-- Active Study Tracker Box -->
             <div class="portal-box">
                 <div class="box-header">
                     <span>📚 Active Study Session Stopwatch</span>
@@ -364,7 +298,6 @@
                 </div>
             </div>
 
-            <!-- Upcoming Exams Box -->
             <div class="portal-box">
                 <div class="box-header">
                     <span>🎯 Scheduled Exams & Countdowns</span>
@@ -375,7 +308,6 @@
                 </div>
             </div>
 
-            <!-- 14-Day Activity Bar Chart Box -->
             <div class="portal-box full-width">
                 <div class="box-header">
                     <span>📊 Daily Study Hours (Past 14 Days)</span>
@@ -389,11 +321,39 @@
         </div>
 
         <footer>
-            Copyright © 2000-2026 Eric Melendez Web Services. All rights reserved. Best viewed in 1024x768 resolution.
+            Copyright © 2000-2026 Eric Melendez Web Services. All rights reserved.
         </footer>
     </div>
 
-    <!-- External Script -->
+    <!-- Modal Manager -->
+    <div class="modal-overlay" id="editorModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span>⚙️ Manage Projects & Exams</span>
+                <span id="closeModalBtn" style="cursor: pointer; color: #f87171;">✕</span>
+            </div>
+
+            <div class="form-section">
+                <div class="section-label">Add New Subject/Project</div>
+                <input type="text" id="newProjName" placeholder="Project / Subject Title">
+                <input type="number" id="newProjHours" placeholder="Initial Hours Logged" step="0.5">
+                <button id="addProjBtn" class="btn-green">+ Add Subject</button>
+            </div>
+
+            <div class="form-section">
+                <div class="section-label">Add Upcoming Exam</div>
+                <input type="text" id="newExamName" placeholder="Exam Title">
+                <input type="datetime-local" id="newExamDate">
+                <button id="addExamBtn" class="btn-green">+ Add Exam</button>
+            </div>
+
+            <div class="form-section">
+                <div class="section-label">Manage Existing Items</div>
+                <div id="manageItemsList"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js" defer></script>
 </body>
 </html>
