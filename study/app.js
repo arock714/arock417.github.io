@@ -1,12 +1,12 @@
 // --- SUPABASE DATABASE CONFIGURATION ---
 const SUPABASE_URL = "https://xkwdguskmvschpmkkwxs.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; // <-- Paste your anon key here if using Supabase
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE"; // <-- Paste your anon key here if using Supabase
 
-const supabase = window.supabase && !SUPABASE_ANON_KEY.includes("YOUR_") 
+const supabase = (window.supabase && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes("YOUR_")) 
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
     : null;
 
-// Initial Fallback Starter Data (Ensures page is NEVER blank)
+// Initial Default Starter Data (Ensures the page always populates immediately)
 let trackerData = {
     projects: [
         { id: "1", name: "Flight Dynamics & Controls", totalHours: 24.5 },
@@ -54,12 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerInterval = null;
     let elapsedSeconds = 0;
 
+    // Synchronous Immediate Render First
+    renderProjects();
+    renderExams();
+    renderChart();
+
     async function loadData() {
-        // Try loading from localStorage fallback first
+        // Check localStorage fallback
         const local = localStorage.getItem('study_tracker_data');
         if (local) {
             try {
-                trackerData = JSON.parse(local);
+                const parsed = JSON.parse(local);
+                if (parsed && parsed.projects) trackerData = parsed;
             } catch (e) {}
         }
 
@@ -211,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
             row.innerHTML = `<span style="flex: 1; font-weight: bold;">${proj.name} (${proj.totalHours.toFixed(1)} hrs)</span>`;
 
             const delBtn = document.createElement('button');
+            delBtn.className = 'btn-outline';
             delBtn.textContent = 'Delete';
             delBtn.onclick = async () => {
                 trackerData.projects.splice(idx, 1);
@@ -238,8 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="datetime-local" id="editExamDate_${idx}" value="${dateVal}">
                 </div>
                 <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                    <button id="saveExamBtn_${idx}" class="btn-blue">Save</button>
-                    <button id="delExamBtn_${idx}">Delete</button>
+                    <button id="saveExamBtn_${idx}">Save</button>
+                    <button id="delExamBtn_${idx}" class="btn-outline">Delete</button>
                 </div>
             `;
             manageItemsList.appendChild(row);
