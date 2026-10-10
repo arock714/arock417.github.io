@@ -1,6 +1,6 @@
-// --- PASTE YOUR SUPABASE CREDENTIALS HERE ---
+// --- SUPABASE DATABASE CONFIGURATION ---
 const SUPABASE_URL = "https://xkwdguskmvschpmkkwxs.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HEciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE"; // <-- Make sure your anon key is pasted here
 
 const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
@@ -23,6 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const weeklyTotalDisplay = document.getElementById('weeklyTotalDisplay');
     const syncStatus = document.getElementById('syncStatus');
 
+    // Manual Time Inputs
+    const manualHours = document.getElementById('manualHours');
+    const manualMins = document.getElementById('manualMins');
+    const manualLogBtn = document.getElementById('manualLogBtn');
+
+    // Modal Editor Elements
     const openEditorBtn = document.getElementById('openEditorBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const editorModal = document.getElementById('editorModal');
@@ -33,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerInterval = null;
     let elapsedSeconds = 0;
 
-    // Load data from Supabase DB
+    // Fetch initial data from Supabase DB
     async function loadFromDatabase() {
         if (!supabase) return;
         try {
@@ -49,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (syncStatus) syncStatus.textContent = "⚡ Supabase Database: Connected";
             }
         } catch (err) {
-            console.warn("Could not fetch from Supabase, falling back to local storage.", err);
+            console.warn("Could not fetch from Supabase, checking local storage.", err);
             if (syncStatus) syncStatus.textContent = "⚠️ Offline / Local Storage Mode";
             const local = localStorage.getItem('study_db_fallback');
             if (local) trackerData = JSON.parse(local);
@@ -60,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Save data back to Supabase DB
+    // Save updated data to Supabase DB
     async function saveToDatabase() {
         localStorage.setItem('study_db_fallback', JSON.stringify(trackerData));
         renderProjects();
@@ -75,9 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 .upsert({ id: 'main', data: trackerData });
 
             if (error) throw error;
-            console.log("Successfully saved to Supabase!");
+            console.log("Successfully synchronized with Supabase!");
         } catch (err) {
-            console.error("Error saving to Supabase DB:", err);
+            console.error("Error writing to Supabase DB:", err);
             alert("Database write error: " + err.message);
         }
     }
@@ -173,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${h}:${m}:${s}`;
     }
 
+    // Modal Manager Render (Subject Delete + Exam Inline Edit/Delete)
     function renderManagerList() {
         if (!manageItemsList) return;
         manageItemsList.innerHTML = '';
@@ -185,10 +192,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         (trackerData.projects || []).forEach((proj, idx) => {
             const row = document.createElement('div');
+            row.className = 'item-edit-row';
             row.style.display = 'flex';
             row.style.alignItems = 'center';
-            row.style.marginBottom = '4px';
-            row.innerHTML = `<span style="flex: 1;">${proj.name} (${proj.totalHours.toFixed(1)} hrs)</span>`;
+            row.innerHTML = `<span style="flex: 1; font-weight: bold; color: #f1f5f9;">${proj.name} (${proj.totalHours.toFixed(1)} hrs)</span>`;
             
             const delBtn = document.createElement('button');
             delBtn.className = 'btn-red';
@@ -204,27 +211,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const eTitle = document.createElement('div');
         eTitle.style.fontWeight = 'bold';
-        eTitle.style.margin = '10px 0 6px 0';
-        eTitle.textContent = "Exams:";
+        eTitle.style.margin = '12px 0 6px 0';
+        eTitle.textContent = "Exams & Dates:";
         manageItemsList.appendChild(eTitle);
 
         (trackerData.exams || []).forEach((ex, idx) => {
             const row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.alignItems = 'center';
-            row.style.marginBottom = '4px';
-            row.innerHTML = `<span style="flex: 1;">${ex.name}</span>`;
+            row.className = 'item-edit-row';
 
-            const delBtn = document.createElement('button');
-            delBtn.className = 'btn-red';
-            delBtn.textContent = 'Delete';
-            delBtn.onclick = async () => {
-                trackerData.exams.splice(idx, 1);
-                await saveToDatabase();
-                renderManagerList();
-            };
-            row.appendChild(delBtn);
+            // Format date for datetime-local input (YYYY-MM-DDTHH:mm)
+            const dateVal = ex.date ? ex.date.substring(0, 16) : '';
+
+            row.innerHTML = `
+                <div style="margin-bottom: 4px;">
+                    <input type="text" id="editExamName_${idx}" value="${ex.name}" style="margin-bottom: 4px;">
+                    <input type="datetime-local" id="editExamDate_${idx}" value="${dateVal}" style="margin-bottom: 4px;">
+                </div>
+                <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                    <button id="saveExamBtn_${idx}" class="btn-green">Save Changes</button>
+                    <button id="delExamBtn_${idx}" class="btn-red">Delete</button>
+                </div>
+            `;
             manageItemsList.appendChild(row);
+
+            // Bind inline save/delete actions
+            setTimeout(() => {
+                const saveBtn = document.getElementById(`saveExamBtn_${idx}`);
+                const delBtn = document.getElementById(`delExamBtn_${idx}`);
+
+                if (saveBtn) {
+                    saveBtn.onclick = async () => {
+                        const newName = document.getElementById(`editExamName_${idx}`).value.trim();
+                        const newDate = document.getElementById(`editExamDate_${idx}`).value;
+                        if (!newName || !newDate) return alert("Exam title and date cannot be empty.");
+
+                        trackerData.exams[idx].name = newName;
+                        trackerData.exams[idx].date = newDate;
+                        await saveToDatabase();
+                        alert("Exam updated successfully!");
+                        renderManagerList();
+                    };
+                }
+
+                if (delBtn) {
+                    delBtn.onclick = async () => {
+                        trackerData.exams.splice(idx, 1);
+                        await saveToDatabase();
+                        renderManagerList();
+                    };
+                }
+            }, 0);
         });
     }
 
@@ -259,7 +295,43 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // Timer Logic
+    // Manual Hours/Minutes Input Event
+    if (manualLogBtn) {
+        manualLogBtn.onclick = async () => {
+            const hrs = parseFloat(manualHours.value) || 0;
+            const mins = parseFloat(manualMins.value) || 0;
+
+            if (hrs === 0 && mins === 0) {
+                alert("Please enter hours or minutes to add.");
+                return;
+            }
+
+            const totalAddedHours = hrs + (mins / 60);
+
+            // Update selected project total
+            const selectedProjId = projectSelect.value;
+            const proj = (trackerData.projects || []).find(p => p.id === selectedProjId);
+            if (proj) {
+                proj.totalHours += totalAddedHours;
+            } else {
+                alert("Please select a subject first!");
+                return;
+            }
+
+            // Update Today's bar chart
+            const todayEntry = (trackerData.weeklyStudy || []).find(d => d.day === "Today");
+            if (todayEntry) todayEntry.hours += totalAddedHours;
+
+            // Clear input fields
+            manualHours.value = '';
+            manualMins.value = '';
+
+            // Save to DB & refresh UI
+            await saveToDatabase();
+        };
+    }
+
+    // Timer Session Controls
     if (startBtn) {
         startBtn.addEventListener('click', () => {
             startBtn.style.display = 'none';
