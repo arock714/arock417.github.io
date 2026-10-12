@@ -3,7 +3,6 @@ const SUPABASE_URL = "https://xkwdguskmvschpmkkwxs.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RndXNrbXZzY2hwbWtrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NDE3MjksImV4cCI6MjEwNzIxNzcyOX0.hlVk4ZK4BBJD6IG0W8-IxwxhlB5jMMHVLNNRHyxg0HE";
 const USER_ROW_ID = "zoya";
 
-// Clear out any old cached mock data
 try { localStorage.removeItem('zoya_study_tracker_data'); } catch (e) {}
 
 function getDateKey(offsetDays = 0) {
@@ -22,7 +21,6 @@ function getDateDisplayLabel(offsetDays = 0) {
     return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-// Clean Initial State
 const EMPTY_DATA = {
     dailyGoal: 3.0,
     projects: [],
@@ -72,6 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const addExamBtn = document.getElementById('addExamBtn');
     const manageItemsList = document.getElementById('manageItemsList');
 
+    const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
+    const historyLogContainer = document.getElementById('historyLogContainer');
+
     let timerInterval = null;
     let elapsedSeconds = 0;
 
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderExams();
         renderChart();
         renderGoalAndStreak();
+        renderLongTermAnalytics();
     }
 
     renderAll();
@@ -292,6 +294,100 @@ document.addEventListener('DOMContentLoaded', () => {
         if (streakDisplay) {
             streakDisplay.textContent = `🔥 ${streak} day streak`;
         }
+    }
+
+    // Long-Term Analytics & Complete Log Renderer
+    function renderLongTermAnalytics() {
+        const logs = trackerData.dailyLogs || {};
+        const entries = Object.entries(logs).filter(([_, hrs]) => hrs > 0);
+
+        // 1. Calculate Lifetime Stats
+        let totalAllTimeHours = 0;
+        entries.forEach(([_, hrs]) => { totalAllTimeHours += hrs; });
+        const activeDaysCount = entries.length;
+        const dailyAvg = activeDaysCount > 0 ? (totalAllTimeHours / activeDaysCount) : 0;
+
+        if (document.getElementById('statAllTimeHrs')) {
+            document.getElementById('statAllTimeHrs').textContent = `${totalAllTimeHours.toFixed(1)} hrs`;
+        }
+        if (document.getElementById('statActiveDays')) {
+            document.getElementById('statActiveDays').textContent = `${activeDaysCount} days`;
+        }
+        if (document.getElementById('statDailyAvg')) {
+            document.getElementById('statDailyAvg').textContent = `${dailyAvg.toFixed(1)} hrs/day`;
+        }
+
+        // 2. Render Monthly Progress Chart
+        const monthlyMap = {};
+        Object.entries(logs).forEach(([dateStr, hrs]) => {
+            if (hrs > 0) {
+                const monthKey = dateStr.substring(0, 7); // "YYYY-MM"
+                monthlyMap[monthKey] = (monthlyMap[monthKey] || 0) + hrs;
+            }
+        });
+
+        const monthlyContainer = document.getElementById('monthlyChartContainer');
+        if (monthlyContainer) {
+            monthlyContainer.innerHTML = '';
+            const sortedMonths = Object.keys(monthlyMap).sort();
+
+            if (sortedMonths.length === 0) {
+                monthlyContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem; width: 100%; text-align: center; padding-top: 40px;">No historical data logged yet.</div>`;
+            } else {
+                const maxMonthHrs = Math.max(...Object.values(monthlyMap), 10.0);
+                sortedMonths.forEach(mKey => {
+                    const hrs = monthlyMap[mKey];
+                    const heightPercent = (hrs / maxMonthHrs) * 100;
+
+                    const [y, m] = mKey.split('-');
+                    const dateObj = new Date(parseInt(y), parseInt(m) - 1, 1);
+                    const label = dateObj.toLocaleString([], { month: 'short', year: '2-digit' });
+
+                    const col = document.createElement('div');
+                    col.className = 'chart-col';
+                    col.innerHTML = `<div class="chart-val">${hrs.toFixed(1)}</div>` +
+                        `<div class="chart-bar-wrap">` +
+                        `<div class="chart-bar" style="height: ${heightPercent}%;"></div>` +
+                        `</div>` +
+                        `<div class="chart-label">${label}</div>`;
+                    monthlyContainer.appendChild(col);
+                });
+            }
+        }
+
+        // 3. Render Full Daily History Table
+        const historyList = document.getElementById('fullHistoryList');
+        if (historyList) {
+            historyList.innerHTML = '';
+            const sortedDates = Object.keys(logs).filter(k => logs[k] > 0).sort().reverse();
+            if (sortedDates.length === 0) {
+                historyList.innerHTML = `<li style="color: var(--text-muted);">No logs recorded yet.</li>`;
+            } else {
+                sortedDates.forEach(dateStr => {
+                    const hrs = logs[dateStr];
+                    const [y, m, d] = dateStr.split('-');
+                    const formattedDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d)).toLocaleDateString([], {
+                        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+                    });
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="item-name">${formattedDate}</span>` +
+                        `<span class="item-val">${hrs.toFixed(1)} hrs</span>`;
+                    historyList.appendChild(li);
+                });
+            }
+        }
+    }
+
+    if (toggleHistoryBtn && historyLogContainer) {
+        toggleHistoryBtn.onclick = () => {
+            if (historyLogContainer.style.display === 'none') {
+                historyLogContainer.style.display = 'block';
+                toggleHistoryBtn.textContent = 'Hide Daily History Log';
+            } else {
+                historyLogContainer.style.display = 'none';
+                toggleHistoryBtn.textContent = 'Show Daily History Log';
+            }
+        };
     }
 
     function formatHMS(sec) {

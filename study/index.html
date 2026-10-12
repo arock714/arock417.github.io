@@ -211,7 +211,6 @@
         .item-name { font-weight: bold; }
         .item-val { color: var(--text-muted); font-weight: bold; }
 
-        /* Minimal 14-Day Bar Chart */
         .chart-box {
             display: flex;
             align-items: flex-end;
@@ -265,7 +264,6 @@
             white-space: nowrap;
         }
 
-        /* Modal Overlay */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -377,10 +375,47 @@
         <div class="full-width">
             <hr class="divider">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="section-title" style="margin-bottom: 0;">study activity (past 14 days)</div>
+                <div class="section-title" style="margin-bottom: 0;">recent activity (past 14 days)</div>
                 <div id="weeklyTotalDisplay" style="color: var(--text); font-weight: bold;">Total: 0.0 hrs</div>
             </div>
             <div class="chart-box" id="chartContainer"></div>
+        </div>
+
+        <!-- Long-Term Analytics & Complete Log -->
+        <div class="full-width">
+            <hr class="divider">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div class="section-title" style="margin-bottom: 0;">long-term progress & history</div>
+                <button id="toggleHistoryBtn" class="btn-outline">Show Daily History Log</button>
+            </div>
+
+            <!-- Lifetime Stats -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                <div class="timer-box" style="margin-bottom:0; padding:12px; text-align:left;">
+                    <div style="font-size:0.8rem; color:var(--text-muted);">ALL-TIME LOGGED</div>
+                    <div id="statAllTimeHrs" style="font-size:1.4rem; font-weight:bold;">0.0 hrs</div>
+                </div>
+                <div class="timer-box" style="margin-bottom:0; padding:12px; text-align:left;">
+                    <div style="font-size:0.8rem; color:var(--text-muted);">ACTIVE DAYS</div>
+                    <div id="statActiveDays" style="font-size:1.4rem; font-weight:bold;">0 days</div>
+                </div>
+                <div class="timer-box" style="margin-bottom:0; padding:12px; text-align:left;">
+                    <div style="font-size:0.8rem; color:var(--text-muted);">DAILY AVERAGE</div>
+                    <div id="statDailyAvg" style="font-size:1.4rem; font-weight:bold;">0.0 hrs/day</div>
+                </div>
+            </div>
+
+            <!-- Monthly Progress Chart -->
+            <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: var(--text-muted);">MONTHLY TOTALS</div>
+            <div id="monthlyChartContainer" class="chart-box" style="height: 120px; margin-bottom: 16px;"></div>
+
+            <!-- Full Scrollable History Table -->
+            <div id="historyLogContainer" style="display: none; background: var(--panel-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px;">
+                <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px;">complete daily log</div>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <ul class="data-list" id="fullHistoryList"></ul>
+                </div>
+            </div>
         </div>
 
     </div>
