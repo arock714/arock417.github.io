@@ -28,6 +28,9 @@
             --phase-card-bg: #F8FAFC;
             --phase-text-dark: #1E293B;
             
+            --toggle-bg: #E5E7EB;
+            --toggle-text: #4B5563;
+            
             --chart-grid: #E5E7EB;
         }
 
@@ -47,6 +50,9 @@
             --loan-border: #374151;
             --phase-card-bg: #111827;
             --phase-text-dark: #F9FAFB;
+            
+            --toggle-bg: #374151;
+            --toggle-text: #9CA3AF;
             
             --chart-grid: #374151;
         }
@@ -97,6 +103,34 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+        }
+
+        /* --- TOGGLE SWITCH --- */
+        .segmented-control {
+            display: flex;
+            background: var(--toggle-bg);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+        
+        .segmented-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--toggle-text);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .segmented-btn.active {
+            background: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .modern-select {
@@ -162,8 +196,9 @@
             padding: 12px;
             border-top: 1px solid var(--loan-border);
         }
-
-        .loan-payments-section h4 {
+        
+        /* Shared titles for inputs */
+        .section-subtitle {
             font-size: 11px;
             text-transform: uppercase;
             color: var(--text-muted);
@@ -305,8 +340,27 @@
             <button id="theme-toggle" class="btn-small">🌙 Dark Mode</button>
         </div>
         
+        <!-- NEW: Repayment & Payment Strategy -->
         <div class="control-group">
-            <h3>Post-Grad Repayment Term</h3>
+            <h3>Payment Strategy</h3>
+            
+            <div class="segmented-control">
+                <button id="mode-global" class="segmented-btn">Portfolio Avalanche (Global)</button>
+                <button id="mode-detailed" class="segmented-btn active">Detailed (Per-Loan)</button>
+            </div>
+
+            <!-- Global Payment UI (Hidden by Default) -->
+            <div id="global-payments-ui" style="display: none; margin-top: 8px;">
+                <h4 class="section-subtitle">Total Monthly Budget ($)</h4>
+                <div class="payment-grid">
+                    <div class="input-wrapper"><label>Phase 1</label><input type="number" id="g-p1" value="110"></div>
+                    <div class="input-wrapper"><label>Phase 2</label><input type="number" id="g-p2" value="350"></div>
+                    <div class="input-wrapper"><label>Phase 3</label><input type="number" id="g-p3" value="500"></div>
+                    <div class="input-wrapper"><label>Phase 4</label><input type="number" id="g-p4" value="500"></div>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 12px;">Post-Grad Repayment Term</h3>
             <select id="repayment-term" class="modern-select">
                 <option value="5">5 Years</option>
                 <option value="10" selected>10 Years (Standard)</option>
@@ -380,13 +434,16 @@
 
 <script>
     /* global Chart */
+    let paymentMode = 'detailed'; // 'detailed' or 'global'
     let loansData = [
-        { title: 'Fed Unsub 1', date: '2026-08-31', p: 10250.00, apr: 8.07, p1: 110, p2: 100, p3: 100, p4: 100 },
+        { title: 'Fed Unsub 1', date: '2026-08-31', p: 10129.80, apr: 8.07, p1: 110, p2: 100, p3: 100, p4: 100 },
         { title: 'Fed Unsub 2', date: '2027-01-15', p: 10250.00, apr: 8.07, p1: 0, p2: 0, p3: 0, p4: 0 },
         { title: 'Private 1', date: '2027-01-15', p: 24104.00, apr: 10.50, p1: 0, p2: 250, p3: 400, p4: 400 },
         { title: 'Fed Unsub 3', date: '2027-08-15', p: 10250.00, apr: 8.07, p1: 0, p2: 0, p3: 0, p4: 0 },
         { title: 'Private 2', date: '2027-08-15', p: 9858.00, apr: 10.50, p1: 0, p2: 0, p3: 0, p4: 0 }
     ];
+
+    let globalPayments = { 1: 110, 2: 350, 3: 500, 4: 500 };
 
     let chartInstance = null;
     let lastBaseSim = null;
@@ -395,7 +452,7 @@
     const repaymentStart = new Date(2028, 5, 16);
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Dark Mode Toggle
+        // Theme Toggle
         const themeBtn = document.getElementById('theme-toggle');
         themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
@@ -403,6 +460,18 @@
             themeBtn.innerText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
             if (lastBaseSim && lastDynSim) updateChart(lastBaseSim, lastDynSim);
         });
+
+        // Payment Mode Toggle
+        document.getElementById('mode-global').addEventListener('click', () => setPaymentMode('global'));
+        document.getElementById('mode-detailed').addEventListener('click', () => setPaymentMode('detailed'));
+
+        // Input listeners for Global UI
+        for (let i = 1; i <= 4; i++) {
+            document.getElementById(`g-p${i}`).addEventListener('input', (e) => {
+                globalPayments[i] = parseFloat(e.target.value) || 0;
+                runSimulation();
+            });
+        }
 
         renderLoans();
         
@@ -417,12 +486,43 @@
         runSimulation();
     });
 
+    function setPaymentMode(mode) {
+        paymentMode = mode;
+        if (mode === 'global') {
+            document.getElementById('mode-global').classList.add('active');
+            document.getElementById('mode-detailed').classList.remove('active');
+            document.getElementById('global-payments-ui').style.display = 'block';
+        } else {
+            document.getElementById('mode-detailed').classList.add('active');
+            document.getElementById('mode-global').classList.remove('active');
+            document.getElementById('global-payments-ui').style.display = 'none';
+        }
+        renderLoans();
+        runSimulation();
+    }
+
     function renderLoans() {
         const container = document.getElementById('loans-container');
         container.innerHTML = '';
         loansData.forEach((loan, index) => {
             const div = document.createElement('div');
             div.className = 'loan-item';
+            
+            let paymentsSection = '';
+            if (paymentMode === 'detailed') {
+                paymentsSection = `
+                    <div class="loan-payments-section">
+                        <h4 class="section-subtitle">Targeted Monthly Payments ($)</h4>
+                        <div class="payment-grid">
+                            <div class="input-wrapper"><label>Phase 1</label><input type="number" id="l-p1-${index}" value="${loan.p1 || 0}"></div>
+                            <div class="input-wrapper"><label>Phase 2</label><input type="number" id="l-p2-${index}" value="${loan.p2 || 0}"></div>
+                            <div class="input-wrapper"><label>Phase 3</label><input type="number" id="l-p3-${index}" value="${loan.p3 || 0}"></div>
+                            <div class="input-wrapper"><label>Phase 4</label><input type="number" id="l-p4-${index}" value="${loan.p4 || 0}"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
             div.innerHTML = `
                 <div class="loan-top-row">
                     <input type="text" id="l-title-${index}" value="${loan.title}" placeholder="Loan Name">
@@ -430,41 +530,11 @@
                 </div>
                 
                 <div class="loan-details-grid">
-                    <div class="input-wrapper">
-                        <label>Disbursed</label>
-                        <input type="date" id="l-date-${index}" value="${loan.date}">
-                    </div>
-                    <div class="input-wrapper">
-                        <label>Principal ($)</label>
-                        <input type="number" id="l-p-${index}" value="${loan.p}" step="1">
-                    </div>
-                    <div class="input-wrapper">
-                        <label>APR (%)</label>
-                        <input type="number" id="l-apr-${index}" value="${loan.apr}" step="0.01">
-                    </div>
+                    <div class="input-wrapper"><label>Disbursed</label><input type="date" id="l-date-${index}" value="${loan.date}"></div>
+                    <div class="input-wrapper"><label>Principal ($)</label><input type="number" id="l-p-${index}" value="${loan.p}" step="1"></div>
+                    <div class="input-wrapper"><label>APR (%)</label><input type="number" id="l-apr-${index}" value="${loan.apr}" step="0.01"></div>
                 </div>
-
-                <div class="loan-payments-section">
-                    <h4>Targeted Monthly Payments ($)</h4>
-                    <div class="payment-grid">
-                        <div class="input-wrapper">
-                            <label>Phase 1</label>
-                            <input type="number" id="l-p1-${index}" value="${loan.p1 || 0}">
-                        </div>
-                        <div class="input-wrapper">
-                            <label>Phase 2</label>
-                            <input type="number" id="l-p2-${index}" value="${loan.p2 || 0}">
-                        </div>
-                        <div class="input-wrapper">
-                            <label>Phase 3</label>
-                            <input type="number" id="l-p3-${index}" value="${loan.p3 || 0}">
-                        </div>
-                        <div class="input-wrapper">
-                            <label>Phase 4</label>
-                            <input type="number" id="l-p4-${index}" value="${loan.p4 || 0}">
-                        </div>
-                    </div>
-                </div>
+                ${paymentsSection}
             `;
             container.appendChild(div);
         });
@@ -487,15 +557,19 @@
         for (let i = 0; i < loansData.length; i++) {
             let titleEl = document.getElementById(`l-title-${i}`);
             if(!titleEl) continue; 
+            
+            // Preserve payments if in global mode, read from UI if in detailed
+            let p1 = paymentMode === 'detailed' ? (parseFloat(document.getElementById(`l-p1-${i}`).value) || 0) : loansData[i].p1;
+            let p2 = paymentMode === 'detailed' ? (parseFloat(document.getElementById(`l-p2-${i}`).value) || 0) : loansData[i].p2;
+            let p3 = paymentMode === 'detailed' ? (parseFloat(document.getElementById(`l-p3-${i}`).value) || 0) : loansData[i].p3;
+            let p4 = paymentMode === 'detailed' ? (parseFloat(document.getElementById(`l-p4-${i}`).value) || 0) : loansData[i].p4;
+
             updatedLoans.push({
                 title: titleEl.value,
                 date: document.getElementById(`l-date-${i}`).value,
                 p: parseFloat(document.getElementById(`l-p-${i}`).value) || 0,
                 apr: parseFloat(document.getElementById(`l-apr-${i}`).value) || 0,
-                p1: parseFloat(document.getElementById(`l-p1-${i}`).value) || 0,
-                p2: parseFloat(document.getElementById(`l-p2-${i}`).value) || 0,
-                p3: parseFloat(document.getElementById(`l-p3-${i}`).value) || 0,
-                p4: parseFloat(document.getElementById(`l-p4-${i}`).value) || 0
+                p1: p1, p2: p2, p3: p3, p4: p4
             });
         }
         loansData = updatedLoans;
@@ -545,25 +619,48 @@
             }
 
             if (currentDate.getDate() === 14 && !isBaseline) {
-                simLoans.forEach(loan => {
-                    if (loan.active) {
-                        let targetPmt = loan[`p${phase}`] || 0;
-                        if (targetPmt > 0) {
-                            totalInSchoolPaid += targetPmt;
-                            if (loan.currentI >= targetPmt) {
-                                loan.currentI -= targetPmt;
+                if (paymentMode === 'global') {
+                    // Global Avalanche Waterfall Logic
+                    let pmt = globalPayments[phase] || 0;
+                    if (pmt > 0) {
+                        totalInSchoolPaid += pmt;
+                        let activeLoans = simLoans.filter(l => l.active).sort((a, b) => b.aprDec - a.aprDec);
+                        for (let loan of activeLoans) {
+                            if (pmt <= 0) break;
+                            if (loan.currentI >= pmt) {
+                                loan.currentI -= pmt; pmt = 0;
                             } else {
-                                targetPmt -= loan.currentI;
-                                loan.currentI = 0;
-                                if (loan.currentP >= targetPmt) {
-                                    loan.currentP -= targetPmt;
+                                pmt -= loan.currentI; loan.currentI = 0;
+                                if (loan.currentP >= pmt) {
+                                    loan.currentP -= pmt; pmt = 0;
                                 } else {
-                                    loan.currentP = 0;
+                                    pmt -= loan.currentP; loan.currentP = 0;
                                 }
                             }
                         }
                     }
-                });
+                } else {
+                    // Detailed Per-Loan Target Logic
+                    simLoans.forEach(loan => {
+                        if (loan.active) {
+                            let targetPmt = loan[`p${phase}`] || 0;
+                            if (targetPmt > 0) {
+                                totalInSchoolPaid += targetPmt;
+                                if (loan.currentI >= targetPmt) {
+                                    loan.currentI -= targetPmt;
+                                } else {
+                                    targetPmt -= loan.currentI;
+                                    loan.currentI = 0;
+                                    if (loan.currentP >= targetPmt) {
+                                        loan.currentP -= targetPmt;
+                                    } else {
+                                        loan.currentP = 0;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
             }
             currentDate.setDate(currentDate.getDate() + 1);
         }
@@ -601,9 +698,17 @@
 
     function updatePhaseTotals() {
         let t1 = 0, t2 = 0, t3 = 0, t4 = 0;
-        loansData.forEach(l => {
-            t1 += l.p1 || 0; t2 += l.p2 || 0; t3 += l.p3 || 0; t4 += l.p4 || 0;
-        });
+        if (paymentMode === 'global') {
+            t1 = globalPayments[1];
+            t2 = globalPayments[2];
+            t3 = globalPayments[3];
+            t4 = globalPayments[4];
+        } else {
+            loansData.forEach(l => {
+                t1 += l.p1 || 0; t2 += l.p2 || 0; t3 += l.p3 || 0; t4 += l.p4 || 0;
+            });
+        }
+        
         document.getElementById('summary-p1').innerText = fmt(t1);
         document.getElementById('summary-p2').innerText = fmt(t2);
         document.getElementById('summary-p3').innerText = fmt(t3);
@@ -611,7 +716,9 @@
     }
 
     function runSimulation() {
-        syncLoansFromUI();
+        if (paymentMode === 'detailed') {
+            syncLoansFromUI();
+        }
         updatePhaseTotals(); 
 
         const term = parseInt(document.getElementById('repayment-term').value) || 10;
@@ -661,7 +768,7 @@
                         tension: 0.1
                     },
                     {
-                        label: 'Dynamic Targeted Plan',
+                        label: 'Dynamic Plan',
                         data: dynSim.balances,
                         borderColor: '#4F46E5',
                         borderWidth: 3,
