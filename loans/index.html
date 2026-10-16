@@ -80,6 +80,7 @@
             flex-direction: column;
             gap: 12px;
             box-shadow: 2px 0 15px rgba(0,0,0,0.03);
+            flex-shrink: 0;
         }
 
         .header-bar {
@@ -108,7 +109,7 @@
         .loan-top-row input { flex-grow: 1; font-size: 14px; font-weight: 600; border: 1px solid transparent; background: transparent; padding: 2px 4px; border-radius: 4px; color: var(--primary); }
         .loan-top-row input:focus { border-color: var(--input-border); background: var(--input-bg); outline: none;}
         
-        .loan-details-grid { padding: 6px 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .loan-details-grid { padding: 6px 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .loan-payments-section { padding: 6px 8px; border-top: 1px solid var(--loan-border); background: rgba(0,0,0,0.01); }
         
         .section-subtitle { font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.5px; }
@@ -150,6 +151,47 @@
         .phase-card .p-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; display: inline-block; margin-left: 2px;}
 
         .chart-container { flex-grow: 1; background: var(--card-bg); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; min-height: 380px; }
+
+        /* --- RESPONSIVE CSS (MOBILE SUPPORT) --- */
+        @media (max-width: 900px) {
+            .container { 
+                flex-direction: column; 
+                height: auto; 
+                overflow-y: auto; 
+            }
+            .sidebar { 
+                width: 100%; 
+                border-right: none; 
+                border-bottom: 1px solid var(--border); 
+                box-shadow: none;
+                padding: 16px;
+            }
+            .main-content { 
+                width: 100%; 
+                padding: 16px; 
+                overflow-y: visible;
+            }
+            .kpi-dashboard { 
+                grid-template-columns: 1fr; 
+            }
+            .phase-summary-dashboard { 
+                grid-template-columns: repeat(2, 1fr); 
+            }
+            /* Make the 5th item span full width to look nice */
+            .phase-summary-dashboard .phase-card:nth-child(5) {
+                grid-column: 1 / -1;
+            }
+            .payment-grid { 
+                grid-template-columns: repeat(3, 1fr); 
+                gap: 10px;
+            }
+            .loan-details-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-container {
+                min-height: 300px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -182,8 +224,8 @@
                 </div>
             </div>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                <h3>Repayment Term</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; flex-wrap: wrap; gap: 8px;">
+                <h3 style="margin: 0;">Repayment Term</h3>
                 <select id="repayment-term" class="modern-select" style="width: auto;">
                     <option value="5">5 Years</option>
                     <option value="10" selected>10 Years (Standard)</option>
@@ -281,6 +323,7 @@
     const repaymentStart = new Date(2028, 5, 16);
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Theme Toggle
         const themeBtn = document.getElementById('theme-toggle');
         themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
