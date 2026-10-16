@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Loan Trajectory Simulator</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Load Chart.js for graphing -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Controls -->
+        <div class="sidebar">
+            <h2>Simulation Controls</h2>
+            
+            <div class="control-group">
+                <h3>Monthly Payments by Phase (USD)</h3>
+                <label>Phase 1 (Oct '26 - Jan '27): <span id="val1">110</span></label>
+                <input type="range" id="phase1" min="0" max="1500" value="110">
+                
+                <label>Phase 2 (Jan '27 - Aug '27): <span id="val2">350</span></label>
+                <input type="range" id="phase2" min="0" max="1500" value="350">
+                
+                <label>Phase 3 (Aug '27 - Dec '27): <span id="val3">500</span></label>
+                <input type="range" id="phase3" min="0" max="1500" value="500">
+                
+                <label>Phase 4 (Dec '27 - Jun '28): <span id="val4">500</span></label>
+                <input type="range" id="phase4" min="0" max="1500" value="500">
+            </div>
+
+            <div class="control-group">
+                <div class="loan-header">
+                    <h3>Loan Portfolio</h3>
+                    <button id="add-loan-btn" class="btn-small">+ Add Loan</button>
+                </div>
+                <div id="loans-container">
+                    <!-- Loan items will be generated here by JavaScript -->
+                </div>
+            </div>
+
+            <button id="update-btn" class="btn-primary">Update Simulation</button>
+        </div>
+
+        <!-- Main Chart Area -->
+        <div class="main-content">
+            <div class="chart-container">
+                <canvas id="loanChart"></canvas>
+            </div>
+            <div id="results-summary" class="summary-box">
+                <!-- Summary text goes here -->
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
